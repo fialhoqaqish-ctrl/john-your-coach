@@ -9,7 +9,7 @@ export const Route = createFileRoute("/login")({
 function Login() {
   const navigate = useNavigate();
   const [token, setToken] = useState("");
-  const [base, setBase] = useState("");
+  const [base, setBase] = useState("https://ai-coach-production-4dcd.up.railway.app");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -18,13 +18,8 @@ function Login() {
     if (a.base) setBase(a.base);
   }, []);
 
-  // Prefill base from pasted token if it looks like a URL
   function handleTokenChange(v: string) {
     setToken(v);
-    const urlMatch = v.match(/https?:\/\/[^\s"']+/);
-    if (urlMatch && !base) {
-      setBase(urlMatch[0].replace(/\/$/, ""));
-    }
   }
 
   async function connect() {

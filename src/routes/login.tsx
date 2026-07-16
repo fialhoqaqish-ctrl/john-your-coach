@@ -36,64 +36,81 @@ function Login() {
       if (!b || !t) throw new Error("Fill in both fields");
       await apiFetch("/api/dashboard", {}, { base: b, token: t });
       setAuth(b, t);
-      navigate({ to: "/progress", replace: true });
+      navigate({ to: "/today", replace: true });
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Connection failed");
+      const msg = e instanceof Error ? e.message : "Connection failed";
+      setError(
+        msg.includes("401") || msg.toLowerCase().includes("unauth")
+          ? "Invalid token — re-run /appconnect in Telegram."
+          : msg,
+      );
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground px-6 py-12 flex flex-col">
-      <div className="mt-8">
-        <h1 className="font-display text-[7rem] leading-none font-black tracking-tighter">
-          JOHN
-        </h1>
-        <p className="mt-2 font-display text-lg tracking-widest text-primary">
-          YOUR COACH. NO EXCUSES.
+    <main className="min-h-dvh bg-background text-foreground px-6 py-12 flex flex-col">
+      <div className="mt-6">
+        <h1 className="font-display text-[6.5rem] leading-[0.85] tracking-tighter">JOHN</h1>
+        <p className="mt-3 text-sm font-medium tracking-[0.16em] uppercase text-primary">
+          Your Coach. No Excuses.
         </p>
       </div>
 
-      <div className="mt-14 space-y-5">
+      <form
+        className="mt-14 space-y-5"
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (!loading) connect();
+        }}
+      >
         <div>
-          <label className="block font-display text-xs tracking-widest text-muted-foreground mb-2">
-            BEARER TOKEN
+          <label htmlFor="token" className="block text-[11px] font-medium tracking-[0.14em] uppercase text-muted-foreground mb-2">
+            Bearer Token
           </label>
           <textarea
+            id="token"
             value={token}
             onChange={(e) => handleTokenChange(e.target.value)}
             rows={4}
+            spellCheck={false}
+            autoComplete="off"
+            autoCapitalize="off"
+            autoCorrect="off"
             placeholder="Paste your token…"
-            className="w-full rounded-[20px] bg-card border border-border p-4 text-sm font-mono text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary resize-none"
+            className="w-full rounded-2xl bg-card border border-border p-4 text-sm font-mono text-foreground placeholder:text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary resize-none"
           />
         </div>
         <div>
-          <label className="block font-display text-xs tracking-widest text-muted-foreground mb-2">
+          <label htmlFor="base" className="block text-[11px] font-medium tracking-[0.14em] uppercase text-muted-foreground mb-2">
             API URL
           </label>
           <input
+            id="base"
+            type="url"
+            inputMode="url"
             value={base}
             onChange={(e) => setBase(e.target.value)}
             placeholder="https://api.example.com"
-            className="w-full rounded-[20px] bg-card border border-border p-4 text-sm font-mono text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary"
+            className="w-full rounded-2xl bg-card border border-border p-4 text-sm font-mono text-foreground placeholder:text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           />
         </div>
 
         {error && (
-          <div className="rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          <div role="alert" className="rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
             {error}
           </div>
         )}
 
         <button
-          onClick={connect}
+          type="submit"
           disabled={loading}
-          className="w-full rounded-full bg-primary text-primary-foreground font-display font-black tracking-widest text-lg py-5 disabled:opacity-50 active:scale-[0.98] transition"
+          className="w-full rounded-full bg-primary text-primary-foreground font-semibold tracking-wide text-base py-4 disabled:opacity-60 active:scale-[0.98] transition focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
-          {loading ? "CONNECTING…" : "CONNECT"}
+          {loading ? "Connecting…" : "Connect"}
         </button>
-      </div>
-    </div>
+      </form>
+    </main>
   );
 }

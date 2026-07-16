@@ -84,10 +84,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
       { name: "apple-mobile-web-app-title", content: "JOHN" },
       { property: "og:title", content: "JOHN — Your Coach" },
-      { property: "og:description", content: "Your coach. No excuses." },
+      { property: "og:description", content: "JOHN is your bold, no-excuses coach. Track readiness, volume, pace, and chat with your coach." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "JOHN — Your Coach" },
+      { name: "twitter:description", content: "JOHN is your bold, no-excuses coach. Track readiness, volume, pace, and chat with your coach." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/5fe9b372-849c-4ea6-8bd3-20bff2a6c0cc/id-preview-41fc8733--f508ad5f-9dec-4d38-9c48-088933c07717.lovable.app-1784203466162.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/5fe9b372-849c-4ea6-8bd3-20bff2a6c0cc/id-preview-41fc8733--f508ad5f-9dec-4d38-9c48-088933c07717.lovable.app-1784203466162.png" },
     ],
     links: [
       {

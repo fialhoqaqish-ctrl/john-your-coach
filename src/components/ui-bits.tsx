@@ -51,6 +51,33 @@ export function Building({ needed }: { needed: number }) {
   return <EmptyLine>Building your baseline — {needed} more…</EmptyLine>;
 }
 
+export function BaselineForming({
+  signals,
+  etaDays = 12,
+}: {
+  signals: string[];
+  etaDays?: number;
+}) {
+  return (
+    <Card>
+      <SectionLabel>Baseline forming</SectionLabel>
+      <p className="mt-3 text-base text-foreground">
+        {signals.join(" · ")} light up as data flows in.
+      </p>
+      <div className="mt-4 h-1 w-full overflow-hidden rounded-full bg-border">
+        <div
+          className="h-full bg-primary/60"
+          style={{ width: "18%", transition: "width 500ms" }}
+          aria-hidden="true"
+        />
+      </div>
+      <p className="mt-3 text-xs text-muted-foreground">
+        Full picture unlocks when your Garmin syncs — about {etaDays} days.
+      </p>
+    </Card>
+  );
+}
+
 export function StatePill({ state }: { state: string }) {
   const map: Record<string, string> = {
     ready: "bg-success/15 text-success",

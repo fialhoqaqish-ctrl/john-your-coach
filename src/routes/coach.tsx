@@ -1,7 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Send } from "lucide-react";
-import { AppShell } from "@/components/AppShell";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ArrowUp, ChevronLeft } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 
 export const Route = createFileRoute("/coach")({
@@ -88,71 +87,89 @@ function CoachPage() {
     }, 3000);
   }
 
+  const visibleMessages = useMemo(
+    () => (messages.length > 50 ? messages.slice(-50) : messages),
+    [messages],
+  );
+
   return (
-    <AppShell>
-      <div className="flex flex-col h-[100dvh]">
-        <div className="px-5 pt-8 pb-4 shrink-0">
-          <h1 className="font-display text-5xl font-black tracking-tighter">COACH</h1>
-        </div>
+    <div className="flex flex-col h-dvh bg-background text-foreground" style={{ overscrollBehavior: "contain" }}>
+      <header className="px-5 pt-6 pb-4 shrink-0 flex items-center gap-3 border-b border-border">
+        <Link to="/plan" aria-label="Back to Plan" className="text-muted-foreground hover:text-foreground">
+          <ChevronLeft size={20} aria-hidden="true" />
+        </Link>
+        <h1 className="text-[13px] uppercase tracking-[0.16em] text-muted-foreground">Coach</h1>
+      </header>
 
-        <div
-          ref={scrollRef}
-          className="flex-1 overflow-y-auto px-4 pb-40 space-y-3"
-        >
-          {loading && (
-            <p className="text-center text-sm text-muted-foreground py-8">Loading…</p>
-          )}
-          {!loading && messages.length === 0 && (
-            <div className="rounded-[20px] border border-border bg-card p-6 text-center mt-6">
-              <p className="font-display text-lg tracking-tight">Say hi to your coach.</p>
-              <p className="text-sm text-muted-foreground mt-1">
-                Ask about training, recovery, or your next race.
-              </p>
-            </div>
-          )}
-          {messages.map((m, i) => (
-            <Bubble key={i} m={m} />
-          ))}
-          {thinking && (
-            <div className="flex justify-start">
-              <div className="rounded-[20px] border border-border bg-card px-4 py-3 flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                <span className="text-sm text-muted-foreground">John is thinking…</span>
-              </div>
-            </div>
-          )}
-          {error && (
-            <p className="text-center text-xs text-destructive py-2">{error}</p>
-          )}
-        </div>
-
-        <div className="fixed inset-x-0 bottom-[64px] z-30 border-t border-border bg-background/95 backdrop-blur">
-          <div className="mx-auto max-w-md px-3 py-3 flex items-end gap-2">
-            <textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  send();
-                }
-              }}
-              rows={1}
-              placeholder="Message John…"
-              className="flex-1 resize-none rounded-2xl bg-card border border-border px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary max-h-32"
-            />
-            <button
-              onClick={send}
-              disabled={thinking || !input.trim()}
-              className="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center disabled:opacity-40 active:scale-95 transition shrink-0"
-              aria-label="Send"
-            >
-              <Send size={20} strokeWidth={2.5} />
-            </button>
+      <div
+        ref={scrollRef}
+        role="log"
+        aria-live="polite"
+        aria-label="Coach conversation"
+        className="flex-1 overflow-y-auto px-4 py-4 space-y-3"
+        style={{ overscrollBehavior: "contain" }}
+      >
+        {loading && <p className="text-center text-sm text-muted-foreground py-8">Loading…</p>}
+        {!loading && messages.length === 0 && (
+          <div className="rounded-2xl border border-border bg-card p-6 text-center mt-6">
+            <p className="text-lg text-foreground">Say hi to your coach.</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              Ask about training, recovery, or your next race.
+            </p>
           </div>
-        </div>
+        )}
+        {visibleMessages.map((m, i) => (
+          <Bubble key={`${m.at}-${i}`} m={m} />
+        ))}
+        {thinking && (
+          <div className="flex justify-start" aria-live="polite">
+            <div className="rounded-2xl border border-border bg-card px-4 py-3 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" aria-hidden="true" />
+              <span className="text-sm text-muted-foreground">John is thinking…</span>
+            </div>
+          </div>
+        )}
+        {error && (
+          <p role="alert" className="text-center text-xs text-destructive py-2">
+            {error}
+          </p>
+        )}
       </div>
-    </AppShell>
+
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          send();
+        }}
+        className="border-t border-border bg-background/95 backdrop-blur px-3 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] flex items-end gap-2"
+      >
+        <label htmlFor="chat-input" className="sr-only">
+          Message John
+        </label>
+        <textarea
+          id="chat-input"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              send();
+            }
+          }}
+          rows={1}
+          placeholder="Message John…"
+          className="flex-1 min-w-0 resize-none rounded-2xl bg-card border border-border px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary max-h-32"
+        />
+        <button
+          type="submit"
+          disabled={thinking || !input.trim()}
+          aria-label="Send message"
+          className="w-11 h-11 rounded-full bg-primary text-primary-foreground flex items-center justify-center disabled:opacity-40 active:scale-95 transition shrink-0 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        >
+          <ArrowUp size={18} strokeWidth={2.5} aria-hidden="true" />
+        </button>
+      </form>
+    </div>
   );
 }
 
@@ -161,7 +178,7 @@ function Bubble({ m }: { m: Msg }) {
   return (
     <div className={`flex ${user ? "justify-end" : "justify-start"}`}>
       <div
-        className={`max-w-[80%] rounded-[20px] px-4 py-3 text-sm whitespace-pre-wrap ${
+        className={`max-w-[82%] min-w-0 rounded-2xl px-4 py-3 text-sm whitespace-pre-wrap break-words ${
           user
             ? "bg-primary text-primary-foreground"
             : "bg-card border border-border text-foreground"

@@ -4,6 +4,7 @@ import { Card, SectionLabel, EmptyLine, Verdict } from "@/components/ui-bits";
 import { useDashboard } from "@/lib/useDashboard";
 import { fmtInt, fmtWeekday } from "@/lib/format";
 import { BarChart, Bar, Cell, ReferenceLine, ResponsiveContainer, XAxis } from "recharts";
+import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/today")({ component: TodayPage });
 
@@ -16,9 +17,20 @@ const READINESS = {
 
 function TodayPage() {
   const { data, isLoading, error, refetch } = useDashboard();
+  const state = (data?.readiness?.state ?? "no_data") as string;
+  const isReal = state === "ready" || state === "ease_in" || state === "recover";
+  const [firstReveal, setFirstReveal] = useState(false);
+  useEffect(() => {
+    if (!isReal) return;
+    const key = "john.readiness.firstReal";
+    if (typeof window !== "undefined" && !localStorage.getItem(key)) {
+      localStorage.setItem(key, "1");
+      setFirstReveal(true);
+    }
+  }, [isReal]);
   return (
     <AppShell>
-      <main className="px-5 pt-10 pb-6 space-y-5">
+      <main className="px-5 safe-top pb-6 space-y-5">
         <header className="flex items-baseline justify-between">
           <h1 className="text-[13px] uppercase tracking-[0.16em] text-muted-foreground">Today</h1>
           <button
@@ -32,8 +44,9 @@ function TodayPage() {
 
         {isLoading && <EmptyLine>Loading…</EmptyLine>}
         {error && <EmptyLine>Couldn't reach your data.</EmptyLine>}
-        {data && <ReadinessHero d={data} />}
-        {data && <SessionCard session={data.today_session} race={data.next_race?.name} />}
+        {data && isReal && <ReadinessHero d={data} firstReveal={firstReveal} />}
+        {data && <SessionHero session={data.today_session} race={data.next_race?.name} hero={!isReal} />}
+        {data && !isReal && <ReadinessAnticipatory />}
         {data && <StepsCard steps={data.steps} />}
         {data?.coach_line && (
           <p className="px-2 pt-2 text-[15px] leading-relaxed text-foreground/90">
@@ -45,7 +58,13 @@ function TodayPage() {
   );
 }
 
-function ReadinessHero({ d }: { d: NonNullable<ReturnType<typeof useDashboard>["data"]> }) {
+function ReadinessHero({
+  d,
+  firstReveal,
+}: {
+  d: NonNullable<ReturnType<typeof useDashboard>["data"]>;
+  firstReveal: boolean;
+}) {
   const state = (d.readiness?.state ?? "no_data") as keyof typeof READINESS;
   const cfg = READINESS[state] ?? READINESS.no_data;
   const flags = d.readiness?.flags ?? [];
@@ -56,7 +75,7 @@ function ReadinessHero({ d }: { d: NonNullable<ReturnType<typeof useDashboard>["
         ? "Connect your watch to sharpen this."
         : "No flags — push it.";
   const circumference = 2 * Math.PI * 52;
-  const arc = state === "no_data" ? 0.15 : state === "ready" ? 1 : state === "ease_in" ? 0.66 : 0.33;
+  const arc = state === "ready" ? 1 : state === "ease_in" ? 0.66 : 0.33;
   return (
     <section className="pt-4">
       <div className="flex items-center gap-6">
@@ -73,6 +92,8 @@ function ReadinessHero({ d }: { d: NonNullable<ReturnType<typeof useDashboard>["
               strokeLinecap="round"
               strokeDasharray={`${arc * circumference} ${circumference}`}
               transform="rotate(-90 64 64)"
+              className={firstReveal ? "animate-ring-fill" : undefined}
+              style={firstReveal ? ({ ["--ring-circ" as never]: `${arc * circumference}` } as React.CSSProperties) : undefined}
             />
           </svg>
         </div>
@@ -91,13 +112,63 @@ function ReadinessHero({ d }: { d: NonNullable<ReturnType<typeof useDashboard>["
   );
 }
 
-function SessionCard({ session, race }: { session?: string | null; race?: string }) {
+function SessionHero({
+  session,
+  race,
+  hero,
+}: {
+  session?: string | null;
+  race?: string;
+  hero: boolean;
+}) {
+  const text = session ?? (race ? `Toward ${race}.` : "Nothing locked — open Plan.");
+  if (hero) {
+    return (
+      <section className="pt-4">
+        <SectionLabel>Today's Session</SectionLabel>
+        <p className="mt-3 font-display text-5xl leading-[0.95] text-foreground text-balance">
+          {text}
+        </p>
+      </section>
+    );
+  }
   return (
     <Card>
       <SectionLabel>Today's Session</SectionLabel>
-      <p className="mt-2 text-lg text-foreground">
-        {session ?? (race ? `Toward ${race}.` : "Nothing locked — open Plan.")}
-      </p>
+      <p className="mt-2 text-lg text-foreground">{text}</p>
+    </Card>
+  );
+}
+
+function ReadinessAnticipatory() {
+  const circumference = 2 * Math.PI * 52;
+  return (
+    <Card>
+      <div className="flex items-center gap-5">
+        <div className="shrink-0" aria-hidden="true">
+          <svg width="80" height="80" viewBox="0 0 128 128">
+            <circle cx="64" cy="64" r="52" fill="none" stroke="var(--color-border)" strokeWidth="4" />
+            <circle
+              cx="64"
+              cy="64"
+              r="52"
+              fill="none"
+              stroke="var(--color-primary)"
+              strokeOpacity={0.35}
+              strokeWidth="4"
+              strokeLinecap="round"
+              strokeDasharray={`${0.12 * circumference} ${circumference}`}
+              transform="rotate(-90 64 64)"
+            />
+          </svg>
+        </div>
+        <div className="min-w-0">
+          <SectionLabel>Readiness</SectionLabel>
+          <p className="mt-2 text-[15px] leading-snug text-muted-foreground text-balance">
+            Readiness unlocks when your Garmin syncs — about 12 days.
+          </p>
+        </div>
+      </div>
     </Card>
   );
 }

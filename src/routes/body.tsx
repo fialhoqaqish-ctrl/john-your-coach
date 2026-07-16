@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
-import { Card, SectionLabel, EmptyLine, Verdict, Building } from "@/components/ui-bits";
+import { Card, SectionLabel, EmptyLine, Verdict, Building, BaselineForming } from "@/components/ui-bits";
 import { useDashboard } from "@/lib/useDashboard";
-import { fmtInt } from "@/lib/format";
+import { fmtInt, fmtShortDate } from "@/lib/format";
 import {
   LineChart,
   Line,
@@ -22,9 +22,11 @@ export const Route = createFileRoute("/body")({ component: BodyPage });
 
 function BodyPage() {
   const { data, isLoading, error } = useDashboard();
+  const sleepNights = data?.sleep_series ?? [];
+  const sleepMissing = sleepNights.length < 3;
   return (
     <AppShell>
-      <main className="px-5 pt-10 pb-6 space-y-5">
+      <main className="px-5 safe-top pb-6 space-y-5">
         <h1 className="text-[13px] uppercase tracking-[0.16em] text-muted-foreground">Body</h1>
         {isLoading && <EmptyLine>Loading…</EmptyLine>}
         {error && <EmptyLine>Couldn't reach your data.</EmptyLine>}
@@ -32,7 +34,8 @@ function BodyPage() {
           <>
             <WeightHero d={data} />
             <ProteinCard d={data} />
-            <SleepCard d={data} />
+            {!sleepMissing && <SleepCard d={data} />}
+            {sleepMissing && <BaselineForming signals={["Sleep"]} />}
           </>
         )}
       </main>
@@ -60,32 +63,53 @@ function WeightHero({ d }: { d: Dashboard }) {
     );
   }
   const withAvg = rollingAvg(pts);
-  const first = withAvg[0].avg;
-  const last = withAvg[withAvg.length - 1].avg;
-  const trending = last < first;
+  const firstAvg = withAvg[0].avg;
+  const lastAvg = withAvg[withAvg.length - 1].avg;
+  const trendingDown = lastAvg < firstAvg;
+  // 2-week rolling trend for verdict (cut goal: down is good).
+  const recent = withAvg.slice(-14);
+  const twoWeekDelta = recent.length >= 2 ? recent[recent.length - 1].avg - recent[0].avg : 0;
+  const rollingRising = twoWeekDelta > 0.2; // kg
   const values = pts.map((p) => p.weight);
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const pad = (max - min) * 0.2 || 0.5;
+  const avgs = withAvg.map((p) => p.avg);
+  const domainMin = Math.min(...values, ...avgs);
+  const domainMax = Math.max(...values, ...avgs);
+  const spread = domainMax - domainMin;
+  const pad = spread * 0.25 || 0.3;
+  const goal = domainMin - pad * 0.5; // subtle goal line below current range
+  const firstDate = pts[0].date;
+  const lastDate = pts[pts.length - 1].date;
+  const verdict = rollingRising
+    ? "Trend ticking up — tighten intake."
+    : "Up today — 7-day trend still on track. Normal noise on a cut.";
   return (
     <section>
       <SectionLabel>Weight</SectionLabel>
       <div className="flex items-baseline gap-3 mt-2">
-        <p className="font-display text-6xl leading-none tabular">{last.toFixed(1)}</p>
+        <p className="font-display text-6xl leading-none tabular">{lastAvg.toFixed(1)}</p>
         <span className="text-sm text-muted-foreground tabular">
-          {trending ? "▼" : "▲"} {Math.abs(last - first).toFixed(1)} kg
+          {trendingDown ? "▼" : "▲"} {Math.abs(lastAvg - firstAvg).toFixed(1)} kg
         </span>
       </div>
       <div className="mt-4 h-36">
         <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={withAvg} margin={{ top: 6, right: 6, bottom: 6, left: 0 }}>
-            <YAxis domain={[min - pad, max + pad]} hide />
-            <XAxis dataKey="date" hide />
+          <ComposedChart data={withAvg} margin={{ top: 6, right: 6, bottom: 18, left: 0 }}>
+            <YAxis domain={[domainMin - pad, domainMax + pad]} hide />
+            <XAxis
+              dataKey="date"
+              tickLine={false}
+              axisLine={false}
+              interval={0}
+              ticks={[firstDate, lastDate]}
+              tickFormatter={(v: string) => fmtShortDate(v)}
+              tick={{ fill: "var(--color-muted-foreground)", fontSize: 10 }}
+            />
+            <ReferenceLine y={goal} stroke="var(--color-primary)" strokeOpacity={0.3} strokeDasharray="4 4" />
             <Scatter dataKey="weight" fill="var(--color-muted-foreground)" fillOpacity={0.35} shape="circle" />
             <Line
-              type="monotone"
+              type="linear"
               dataKey="avg"
-              stroke={trending ? "var(--color-primary)" : "var(--color-foreground)"}
+              stroke={rollingRising ? "var(--color-foreground)" : "var(--color-primary)"}
               strokeWidth={2.5}
               dot={false}
               animationDuration={400}
@@ -93,7 +117,7 @@ function WeightHero({ d }: { d: Dashboard }) {
           </ComposedChart>
         </ResponsiveContainer>
       </div>
-      <Verdict>{trending ? "On track for your cut." : "Holding — check protein and sleep."}</Verdict>
+      <Verdict>{verdict}</Verdict>
     </section>
   );
 }
@@ -107,6 +131,15 @@ function ProteinCard({ d }: { d: Dashboard }) {
       <Card>
         <SectionLabel>Protein</SectionLabel>
         <EmptyLine>Log a meal to start tracking.</EmptyLine>
+      </Card>
+    );
+  }
+  if (cur === 0) {
+    return (
+      <Card>
+        <SectionLabel>Protein · muscle protected</SectionLabel>
+        <p className="mt-3 text-base text-muted-foreground">Log today's protein.</p>
+        <p className="mt-1 text-xs text-muted-foreground tabular">Target {fmtInt(target)} g</p>
       </Card>
     );
   }

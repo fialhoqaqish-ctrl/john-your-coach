@@ -12,23 +12,13 @@ function PlanPage() {
   const { data, isLoading, error } = useDashboard();
   return (
     <AppShell>
-      <main className="px-5 pt-10 pb-6 space-y-5">
+      <main className="px-5 safe-top pb-6 space-y-5">
         <h1 className="text-[13px] uppercase tracking-[0.16em] text-muted-foreground">Plan</h1>
         {isLoading && <EmptyLine>Loading…</EmptyLine>}
         {error && <EmptyLine>Couldn't reach your data.</EmptyLine>}
         {data?.next_race && <RaceHero name={data.next_race.name} date={data.next_race.date} />}
         {data?.goals?.map((g, i) => <GoalCard key={i} goal={g} />)}
-        {data?.north_star && (
-          <Card accent>
-            <SectionLabel>North Star</SectionLabel>
-            <p className="mt-2 text-lg text-foreground text-balance">{data.north_star.headline}</p>
-            {data.north_star.review_date && (
-              <p className="mt-2 text-xs text-muted-foreground tabular">
-                Review · {fmtShortDate(data.north_star.review_date)}
-              </p>
-            )}
-          </Card>
-        )}
+        {data?.north_star && <NorthStar ns={data.north_star} />}
         <Link
           to="/coach"
           className="flex items-center justify-between rounded-2xl border border-border bg-card p-5 hover:border-primary/40 transition"
@@ -41,6 +31,32 @@ function PlanPage() {
         </Link>
       </main>
     </AppShell>
+  );
+}
+
+function NorthStar({ ns }: { ns: NonNullable<import("@/lib/types").Dashboard["north_star"]> }) {
+  const line = ns.line ?? ns.headline ?? "";
+  const detail = ns.detail ?? (ns.line ? null : null);
+  return (
+    <section className="pt-2">
+      <SectionLabel>North Star</SectionLabel>
+      <p
+        className="font-display text-[44px] leading-[0.95] mt-3 text-primary text-balance"
+        style={{ textTransform: "none" }}
+      >
+        {line}
+      </p>
+      {detail && (
+        <p className="mt-3 text-[15px] leading-relaxed text-muted-foreground text-balance">
+          {detail}
+        </p>
+      )}
+      {ns.review_date && (
+        <p className="mt-3 text-xs text-muted-foreground tabular">
+          Review · {fmtShortDate(ns.review_date)}
+        </p>
+      )}
+    </section>
   );
 }
 

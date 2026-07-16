@@ -122,7 +122,7 @@ function ProteinCard({ d }: { d: Dashboard }) {
         <div className="h-full bg-primary" style={{ width: `${pct}%`, transition: "width 400ms" }} />
       </div>
       {history.length > 0 && (
-        <div className="mt-4 grid grid-cols-14 gap-1">
+        <div className="mt-4 grid gap-1" style={{ gridTemplateColumns: "repeat(14, minmax(0, 1fr))" }}>
           {history.slice(-14).map((h) => {
             const hit = h.protein_g >= h.target;
             return (

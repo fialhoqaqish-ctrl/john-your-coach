@@ -183,3 +183,15 @@
 @utility safe-bottom {
   padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 5.5rem);
 }
+
+@utility safe-top {
+  padding-top: calc(env(safe-area-inset-top, 0px) + 2.5rem);
+}
+
+@keyframes ring-fill {
+  from { stroke-dashoffset: var(--ring-circ, 327); }
+  to   { stroke-dashoffset: 0; }
+}
+.animate-ring-fill {
+  animation: ring-fill 1200ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}

@@ -16,6 +16,7 @@ export interface Dashboard {
     word?: "RISING" | "HOLDING" | "SLIPPING" | "BUILDING" | string;
     subline?: string | null;
     pct?: number | null;
+    confidence?: "building" | "low" | "ok" | string | null;
   } | null;
   pace_trend?: { period: string; median_pace_sec: number }[] | null;
   rhythm?: {
@@ -41,7 +42,12 @@ export interface Dashboard {
   sleep_series?: { date: string; hours: number }[] | null;
   next_race?: { name: string; date: string } | null;
   goals?: Goal[] | null;
-  north_star?: { headline: string; review_date?: string | null } | null;
+  north_star?: {
+    headline?: string | null;
+    line?: string | null;
+    detail?: string | null;
+    review_date?: string | null;
+  } | null;
   coach_line?: string | null;
   today_session?: string | null;
 }

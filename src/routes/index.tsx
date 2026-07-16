@@ -11,7 +11,7 @@ function Index() {
   const navigate = useNavigate();
   useEffect(() => {
     const { token, base } = getAuth();
-    navigate({ to: token && base ? "/progress" : "/login", replace: true });
+    navigate({ to: token && base ? "/today" : "/login", replace: true });
   }, [navigate]);
   return <div className="min-h-screen bg-background" />;
 }

@@ -11,7 +11,7 @@ export function Card({
 }) {
   return (
     <div
-      className={`rounded-2xl bg-card p-6 ${accent ? "border border-primary/60" : "border border-border"} ${className}`}
+      className={`glass rounded-2xl p-6 ${accent ? "!border-primary/60" : ""} ${className}`}
     >
       {children}
     </div>

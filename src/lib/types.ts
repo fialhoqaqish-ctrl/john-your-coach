@@ -75,3 +75,37 @@ export interface ChatMessage {
 export interface MessagesResponse {
   messages: ChatMessage[];
 }
+
+export interface TodaySession {
+  id: string;
+  time?: string | null;
+  label: string;
+  kind: string;
+  duration_min?: number | null;
+  done?: boolean;
+}
+
+export interface TodayResponse {
+  date: string;
+  sessions?: TodaySession[] | null;
+  plan_text?: string | null;
+  rationale?: string | null;
+}
+
+export interface WorkoutSet {
+  set_index: number;
+  reps: number;
+  weight_kg: number;
+  rpe?: number | null;
+}
+
+export interface WorkoutExercise {
+  name: string;
+  sets: WorkoutSet[];
+  last?: { date: string; reps: number; weight_kg: number } | null;
+}
+
+export interface WorkoutResponse {
+  date: string;
+  exercises: WorkoutExercise[];
+}

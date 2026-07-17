@@ -56,7 +56,7 @@ function TodayPage() {
 
         {isLoading && <EmptyLine>Loading…</EmptyLine>}
         {error && <EmptyLine>Couldn't reach your data.</EmptyLine>}
-        <ProgramCard onOpenWorkout={(date) => setOpenWorkout({ date })} />
+        <ProgramCard onOpenWorkout={(date: string) => setOpenWorkout({ date })} />
         {data && isReal && <ReadinessHero d={data} firstReveal={firstReveal} />}
         {data && !isReal && <ReadinessAnticipatory />}
         {data && <StepsCard steps={data.steps} />}

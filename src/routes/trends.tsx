@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { Card, SectionLabel, EmptyLine, Verdict, BaselineForming } from "@/components/ui-bits";
 import { useDashboard } from "@/lib/useDashboard";
@@ -7,9 +8,6 @@ import { fmtShortDate } from "@/lib/format";
 import {
   LineChart,
   Line,
-  BarChart,
-  Bar,
-  Cell,
   ResponsiveContainer,
   XAxis,
   YAxis,
@@ -28,7 +26,7 @@ const VERDICT_COLOR: Record<string, string> = {
 };
 
 function TrendsPage() {
-  const { data, isLoading, error } = useDashboard();
+  const { data, isLoading, error, refetch } = useDashboard();
   const rhrSeries = data?.wellness?.rhr_series ?? [];
   const vo2Series = data?.body?.vo2max_series ?? [];
   const rhrMissing = rhrSeries.length < 2;
@@ -37,7 +35,7 @@ function TrendsPage() {
   if (rhrMissing) missingSignals.push("RHR");
   if (vo2Missing) missingSignals.push("VO₂max");
   return (
-    <AppShell>
+    <AppShell onRefresh={refetch}>
       <main className="px-5 safe-top pb-6 space-y-5">
         <h1 className="text-[13px] uppercase tracking-[0.16em] text-muted-foreground">Trends</h1>
         {isLoading && <EmptyLine>Loading…</EmptyLine>}

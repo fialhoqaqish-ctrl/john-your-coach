@@ -40,6 +40,11 @@ export interface Dashboard {
     history?: { date: string; protein_g: number; target: number }[] | null;
   } | null;
   sleep_series?: { date: string; hours: number }[] | null;
+  efficiency?: {
+    week?: { period: string; median_pace_sec: number }[] | null;
+    month?: { period: string; median_pace_sec: number }[] | null;
+    quarter?: { period: string; median_pace_sec: number }[] | null;
+  } | null;
   next_race?: { name: string; date: string } | null;
   goals?: Goal[] | null;
   north_star?: {

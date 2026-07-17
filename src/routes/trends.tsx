@@ -76,12 +76,25 @@ function FitnessHero({ d }: { d: Dashboard }) {
   );
 }
 
+type Range = "week" | "month" | "quarter";
+const RANGE_LABEL: Record<Range, string> = { week: "Week", month: "Month", quarter: "3M" };
+const RANGE_WORDS: Record<Range, string> = { week: "last week", month: "last month", quarter: "3 months ago" };
+
 function AerobicCard({ d }: { d: Dashboard }) {
-  const data = d.pace_trend ?? [];
+  const [range, setRange] = useState<Range>("month");
+  const eff = d.efficiency;
+  const source =
+    (eff?.[range] as { period: string; median_pace_sec: number }[] | null | undefined) ??
+    (range === "quarter" ? (d.pace_trend ?? []) : []);
+  const data = source ?? [];
+  const hasAny = !!eff && !!(eff.week?.length || eff.month?.length || eff.quarter?.length);
   if (data.length < 2) {
     return (
       <Card>
-        <SectionLabel>Aerobic efficiency</SectionLabel>
+        <div className="flex items-baseline justify-between gap-2">
+          <SectionLabel>Aerobic efficiency</SectionLabel>
+          {hasAny && <RangeToggle value={range} onChange={setRange} />}
+        </div>
         <EmptyLine>Two runs needed to compare effort.</EmptyLine>
       </Card>
     );
@@ -95,11 +108,12 @@ function AerobicCard({ d }: { d: Dashboard }) {
   // Positive = pace dropped (faster) = more efficient.
   const improvement = ((first - last) / first) * 100;
   const abs = Math.abs(improvement);
+  const window = RANGE_WORDS[range];
   const verdictLine =
     improvement > 0.5
-      ? `${abs.toFixed(1)}% more efficient than 8 weeks ago.`
+      ? `${abs.toFixed(1)}% more efficient vs ${window}.`
       : improvement < -0.5
-        ? `${abs.toFixed(1)}% less efficient than 8 weeks ago — slower at the same effort.`
+        ? `${abs.toFixed(1)}% less efficient vs ${window} — slower at the same effort.`
         : "Holding pace at the same effort.";
   const bandLo = min + (max - min) * 0.35;
   const bandHi = min + (max - min) * 0.65;
@@ -107,7 +121,10 @@ function AerobicCard({ d }: { d: Dashboard }) {
   const lastLabel = data[data.length - 1].period;
   return (
     <Card>
-      <SectionLabel>Aerobic efficiency</SectionLabel>
+      <div className="flex items-baseline justify-between gap-2">
+        <SectionLabel>Aerobic efficiency</SectionLabel>
+        <RangeToggle value={range} onChange={setRange} />
+      </div>
       <p className="mt-1 text-sm text-muted-foreground">Rising line = quicker at the same effort.</p>
       <div className="mt-4 h-32">
         <ResponsiveContainer width="100%" height="100%">
@@ -139,6 +156,31 @@ function AerobicCard({ d }: { d: Dashboard }) {
   );
 }
 
+function RangeToggle({ value, onChange }: { value: Range; onChange: (r: Range) => void }) {
+  const opts: Range[] = ["week", "month", "quarter"];
+  return (
+    <div role="tablist" aria-label="Efficiency range" className="inline-flex rounded-full border border-white/10 bg-white/[0.03] p-0.5">
+      {opts.map((o) => {
+        const active = o === value;
+        return (
+          <button
+            key={o}
+            type="button"
+            role="tab"
+            aria-selected={active}
+            onClick={() => onChange(o)}
+            className={`px-2.5 py-1 text-[11px] font-medium rounded-full transition ${
+              active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {RANGE_LABEL[o]}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 function RhythmCard({ d }: { d: Dashboard }) {
   const weeks = d.rhythm?.weeks ?? [];
   const band = d.rhythm?.band;
@@ -150,38 +192,64 @@ function RhythmCard({ d }: { d: Dashboard }) {
       </Card>
     );
   }
-  const maxVol = Math.max(...weeks.map((w) => w.volume), band?.high ?? 0);
-  const firstWeek = weeks[0].week;
-  const lastWeek = weeks[weeks.length - 1].week;
+  const maxSessions = Math.max(...weeks.map((w) => w.volume), band?.high ?? 0, 6);
+  const H = 112;
+  const u = H / maxSessions;
+  const bandTopY = band ? H - band.high * u : 0;
+  const bandH = band ? Math.max(2, (band.high - band.low) * u) : 0;
   return (
     <Card>
       <SectionLabel>Training rhythm · 12 weeks</SectionLabel>
-      <div className="mt-4 h-28">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={weeks} margin={{ top: 4, right: 4, bottom: 18, left: 0 }}>
-            <YAxis domain={[0, maxVol * 1.1]} hide />
-            <XAxis
-              dataKey="week"
-              tickLine={false}
-              axisLine={false}
-              interval={0}
-              ticks={[firstWeek, lastWeek]}
-              tick={{ fill: "var(--color-muted-foreground)", fontSize: 10 }}
+      <p className="mt-1 text-[12px] leading-snug text-muted-foreground">
+        Each block = one session. The shaded band is your sustainable range — staying inside it beats spiky weeks.
+      </p>
+      <div className="mt-4 relative" style={{ height: H }}>
+        {band && (
+          <>
+            <div
+              className="absolute inset-x-0 rounded"
+              style={{
+                top: bandTopY,
+                height: bandH,
+                background: "var(--color-primary)",
+                opacity: 0.08,
+              }}
+              aria-hidden="true"
             />
-            {band && (
-              <ReferenceArea y1={band.low} y2={band.high} fill="var(--color-primary)" fillOpacity={0.08} />
-            )}
-            <Bar dataKey="volume" radius={[3, 3, 0, 0]}>
-              {weeks.map((w) => (
-                <Cell
-                  key={w.week}
-                  fill={w.state === "in" ? "var(--color-primary)" : "var(--color-muted-foreground)"}
-                  fillOpacity={w.state === "in" ? 0.95 : 0.4}
-                />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
+            <span
+              className="absolute right-0 text-[10px] tabular text-muted-foreground"
+              style={{ top: Math.max(0, bandTopY - 14) }}
+            >
+              {band.low}–{band.high}/wk
+            </span>
+          </>
+        )}
+        <div className="absolute inset-0 flex items-end gap-1">
+          {weeks.map((w) => {
+            const active = w.state === "in";
+            const color = active ? "var(--color-primary)" : "var(--color-muted-foreground)";
+            const opacity = active ? 0.95 : 0.4;
+            const segH = Math.max(2, u - 2);
+            return (
+              <div
+                key={w.week}
+                className="flex-1 flex flex-col-reverse gap-[2px]"
+                aria-label={`${w.week}: ${w.volume} sessions`}
+              >
+                {Array.from({ length: w.volume }).map((_, i) => (
+                  <div
+                    key={i}
+                    style={{ height: segH, background: color, opacity, borderRadius: 2 }}
+                  />
+                ))}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+      <div className="mt-2 flex justify-between text-[10px] tabular text-muted-foreground">
+        <span>{weeks[0].week}</span>
+        <span>{weeks[weeks.length - 1].week}</span>
       </div>
       <Verdict>{d.rhythm?.headline ?? "Volume in your sustainable band."}</Verdict>
     </Card>

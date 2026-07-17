@@ -16,6 +16,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as CoachRouteImport } from './routes/coach'
 import { Route as BodyRouteImport } from './routes/body'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as WorkoutDateRouteImport } from './routes/workout.$date'
 
 const TrendsRoute = TrendsRouteImport.update({
   id: '/trends',
@@ -52,6 +53,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WorkoutDateRoute = WorkoutDateRouteImport.update({
+  id: '/workout/$date',
+  path: '/workout/$date',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -61,6 +67,7 @@ export interface FileRoutesByFullPath {
   '/plan': typeof PlanRoute
   '/today': typeof TodayRoute
   '/trends': typeof TrendsRoute
+  '/workout/$date': typeof WorkoutDateRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -70,6 +77,7 @@ export interface FileRoutesByTo {
   '/plan': typeof PlanRoute
   '/today': typeof TodayRoute
   '/trends': typeof TrendsRoute
+  '/workout/$date': typeof WorkoutDateRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -80,6 +88,7 @@ export interface FileRoutesById {
   '/plan': typeof PlanRoute
   '/today': typeof TodayRoute
   '/trends': typeof TrendsRoute
+  '/workout/$date': typeof WorkoutDateRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -91,8 +100,17 @@ export interface FileRouteTypes {
     | '/plan'
     | '/today'
     | '/trends'
+    | '/workout/$date'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/body' | '/coach' | '/login' | '/plan' | '/today' | '/trends'
+  to:
+    | '/'
+    | '/body'
+    | '/coach'
+    | '/login'
+    | '/plan'
+    | '/today'
+    | '/trends'
+    | '/workout/$date'
   id:
     | '__root__'
     | '/'
@@ -102,6 +120,7 @@ export interface FileRouteTypes {
     | '/plan'
     | '/today'
     | '/trends'
+    | '/workout/$date'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -112,6 +131,7 @@ export interface RootRouteChildren {
   PlanRoute: typeof PlanRoute
   TodayRoute: typeof TodayRoute
   TrendsRoute: typeof TrendsRoute
+  WorkoutDateRoute: typeof WorkoutDateRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -165,6 +185,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/workout/$date': {
+      id: '/workout/$date'
+      path: '/workout/$date'
+      fullPath: '/workout/$date'
+      preLoaderRoute: typeof WorkoutDateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -176,6 +203,7 @@ const rootRouteChildren: RootRouteChildren = {
   PlanRoute: PlanRoute,
   TodayRoute: TodayRoute,
   TrendsRoute: TrendsRoute,
+  WorkoutDateRoute: WorkoutDateRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

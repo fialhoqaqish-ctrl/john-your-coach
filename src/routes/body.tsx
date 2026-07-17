@@ -21,11 +21,11 @@ import type { Dashboard } from "@/lib/types";
 export const Route = createFileRoute("/body")({ component: BodyPage });
 
 function BodyPage() {
-  const { data, isLoading, error } = useDashboard();
+  const { data, isLoading, error, refetch } = useDashboard();
   const sleepNights = data?.sleep_series ?? [];
   const sleepMissing = sleepNights.length < 3;
   return (
-    <AppShell>
+    <AppShell onRefresh={refetch}>
       <main className="px-5 safe-top pb-6 space-y-5">
         <h1 className="text-[13px] uppercase tracking-[0.16em] text-muted-foreground">Body</h1>
         {isLoading && <EmptyLine>Loading…</EmptyLine>}

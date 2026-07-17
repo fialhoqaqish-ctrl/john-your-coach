@@ -4,7 +4,18 @@ import { Card, SectionLabel, EmptyLine, Verdict } from "@/components/ui-bits";
 import { useDashboard } from "@/lib/useDashboard";
 import { fmtInt, fmtWeekday } from "@/lib/format";
 import { BarChart, Bar, Cell, ReferenceLine, ResponsiveContainer, XAxis } from "recharts";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { apiFetch } from "@/lib/api";
+import type {
+  TodayResponse,
+  TodaySession,
+  WorkoutExercise,
+  WorkoutResponse,
+  WorkoutSet,
+  ChatMessage,
+} from "@/lib/types";
+import { ArrowUp, Check, Plus, X } from "lucide-react";
 
 export const Route = createFileRoute("/today")({ component: TodayPage });
 
@@ -28,6 +39,7 @@ function TodayPage() {
       setFirstReveal(true);
     }
   }, [isReal]);
+  const [openWorkout, setOpenWorkout] = useState<{ date: string } | null>(null);
   return (
     <AppShell>
       <main className="px-5 safe-top pb-6 space-y-5">
@@ -44,14 +56,17 @@ function TodayPage() {
 
         {isLoading && <EmptyLine>Loading…</EmptyLine>}
         {error && <EmptyLine>Couldn't reach your data.</EmptyLine>}
+        <ProgramCard onOpenWorkout={(date) => setOpenWorkout({ date })} />
         {data && isReal && <ReadinessHero d={data} firstReveal={firstReveal} />}
-        {data && <SessionHero session={data.today_session} race={data.next_race?.name} hero={!isReal} />}
         {data && !isReal && <ReadinessAnticipatory />}
         {data && <StepsCard steps={data.steps} />}
         {data?.coach_line && (
           <p className="px-2 pt-2 text-[15px] leading-relaxed text-foreground/90">
             {data.coach_line}
           </p>
+        )}
+        {openWorkout && (
+          <WorkoutSheet date={openWorkout.date} onClose={() => setOpenWorkout(null)} />
         )}
       </main>
     </AppShell>

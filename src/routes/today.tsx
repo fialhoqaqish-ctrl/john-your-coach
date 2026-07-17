@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { Card, SectionLabel, EmptyLine, Verdict } from "@/components/ui-bits";
 import { useDashboard } from "@/lib/useDashboard";
@@ -10,12 +10,9 @@ import { apiFetch } from "@/lib/api";
 import type {
   TodayResponse,
   TodaySession,
-  WorkoutExercise,
-  WorkoutResponse,
-  WorkoutSet,
   ChatMessage,
 } from "@/lib/types";
-import { ArrowUp, Check, Plus, X } from "lucide-react";
+import { ArrowUp, Check } from "lucide-react";
 
 export const Route = createFileRoute("/today")({ component: TodayPage });
 
@@ -28,6 +25,7 @@ const READINESS = {
 
 function TodayPage() {
   const { data, isLoading, error, refetch } = useDashboard();
+  const qc = useQueryClient();
   const state = (data?.readiness?.state ?? "no_data") as string;
   const isReal = state === "ready" || state === "ease_in" || state === "recover";
   const [firstReveal, setFirstReveal] = useState(false);
@@ -39,15 +37,21 @@ function TodayPage() {
       setFirstReveal(true);
     }
   }, [isReal]);
-  const [openWorkout, setOpenWorkout] = useState<{ date: string } | null>(null);
+  const navigate = useNavigate();
+  const onRefresh = useCallback(async () => {
+    await Promise.all([
+      refetch(),
+      qc.invalidateQueries({ queryKey: ["today"] }),
+    ]);
+  }, [refetch, qc]);
   return (
-    <AppShell>
+    <AppShell onRefresh={onRefresh}>
       <main className="px-5 safe-top pb-6 space-y-5">
         <header className="flex items-baseline justify-between">
           <h1 className="text-[13px] uppercase tracking-[0.16em] text-muted-foreground">Today</h1>
           <button
             type="button"
-            onClick={() => refetch()}
+            onClick={onRefresh}
             className="text-xs text-muted-foreground underline-offset-4 hover:underline focus-visible:underline"
           >
             Refresh
@@ -56,17 +60,14 @@ function TodayPage() {
 
         {isLoading && <EmptyLine>Loading…</EmptyLine>}
         {error && <EmptyLine>Couldn't reach your data.</EmptyLine>}
-        <ProgramCard onOpenWorkout={(date: string) => setOpenWorkout({ date })} />
+        <ProgramCard onOpenWorkout={(date: string) => navigate({ to: "/workout/$date", params: { date } })} />
         {data && isReal && <ReadinessHero d={data} firstReveal={firstReveal} />}
         {data && !isReal && <ReadinessAnticipatory />}
         {data && <StepsCard steps={data.steps} />}
         {data?.coach_line && (
-          <p className="px-2 pt-2 text-[15px] leading-relaxed text-foreground/90">
+          <p className="px-2 pt-2 text-[15px] leading-relaxed text-foreground">
             {data.coach_line}
           </p>
-        )}
-        {openWorkout && (
-          <WorkoutSheet date={openWorkout.date} onClose={() => setOpenWorkout(null)} />
         )}
       </main>
     </AppShell>

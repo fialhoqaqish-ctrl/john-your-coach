@@ -194,7 +194,12 @@ function StepsCard({ steps }: { steps?: NonNullable<ReturnType<typeof useDashboa
     return (
       <Card>
         <SectionLabel>Steps</SectionLabel>
-        <p className="mt-3 text-sm text-muted-foreground">No step data yet.</p>
+        <p className="mt-3 text-[15px] leading-snug text-foreground">
+          Steps aren't syncing yet.
+        </p>
+        <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+          Connect Apple Health (Health Auto Export) or your Garmin to see them here.
+        </p>
       </Card>
     );
   }

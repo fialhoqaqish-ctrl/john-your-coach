@@ -65,40 +65,40 @@
 
 :root {
   --radius: 1rem; /* 16px */
-  /* JOHN palette — editorial calm, earned energy */
-  --background: oklch(0.16 0.005 260);    /* #0B0C0E */
-  --foreground: oklch(0.94 0.003 260);    /* #EDEEF0 */
-  --card: oklch(0.21 0.006 260);          /* #141619 */
-  --card-foreground: oklch(0.94 0.003 260);
-  --popover: oklch(0.21 0.006 260);
-  --popover-foreground: oklch(0.94 0.003 260);
-  --primary: oklch(0.92 0.19 118);        /* #C6F24E electric lime */
-  --primary-foreground: oklch(0.16 0.005 260);
-  --secondary: oklch(0.25 0.006 260);
-  --secondary-foreground: oklch(0.94 0.003 260);
-  --muted: oklch(0.24 0.006 260);
-  --muted-foreground: oklch(0.63 0.01 260); /* #8A8F98 */
-  --accent: oklch(0.92 0.19 118);
-  --accent-foreground: oklch(0.16 0.005 260);
-  --destructive: oklch(0.68 0.17 25);     /* #E06B5E */
-  --destructive-foreground: oklch(0.94 0.003 260);
-  --border: oklch(0.29 0.008 260);        /* #22252A */
-  --input: oklch(0.25 0.006 260);
-  --ring: oklch(0.92 0.19 118);
-  --success: oklch(0.78 0.15 155);        /* #5FD08A */
-  --warning: oklch(0.79 0.13 82);         /* #E8B14C */
-  --chart-1: oklch(0.63 0.01 260);        /* neutral grey default */
+  /* JOHN palette — editorial calm, light mode */
+  --background: oklch(0.975 0.003 100);   /* warm off-white */
+  --foreground: oklch(0.20 0.005 260);    /* near-black ink */
+  --card: oklch(1 0 0);                    /* pure white cards */
+  --card-foreground: oklch(0.20 0.005 260);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.20 0.005 260);
+  --primary: oklch(0.88 0.19 118);         /* #B8E23F slightly deeper lime for contrast on white */
+  --primary-foreground: oklch(0.20 0.005 260);
+  --secondary: oklch(0.955 0.003 100);
+  --secondary-foreground: oklch(0.20 0.005 260);
+  --muted: oklch(0.955 0.003 100);
+  --muted-foreground: oklch(0.50 0.008 260); /* mid grey */
+  --accent: oklch(0.88 0.19 118);
+  --accent-foreground: oklch(0.20 0.005 260);
+  --destructive: oklch(0.58 0.19 25);
+  --destructive-foreground: oklch(0.98 0.003 100);
+  --border: oklch(0.90 0.004 260);         /* hairline grey */
+  --input: oklch(0.94 0.004 260);
+  --ring: oklch(0.88 0.19 118);
+  --success: oklch(0.65 0.15 155);
+  --warning: oklch(0.70 0.13 82);
+  --chart-1: oklch(0.50 0.008 260);
   --chart-2: oklch(0.92 0.19 118);
   --chart-3: oklch(0.78 0.15 155);
   --chart-4: oklch(0.79 0.13 82);
   --chart-5: oklch(0.68 0.17 25);
-  --sidebar: oklch(0.21 0.006 260);
-  --sidebar-foreground: oklch(0.97 0 0);
+  --sidebar: oklch(1 0 0);
+  --sidebar-foreground: oklch(0.20 0.005 260);
   --sidebar-primary: oklch(0.94 0.19 118);
   --sidebar-primary-foreground: oklch(0.15 0 0);
-  --sidebar-accent: oklch(0.24 0 0);
-  --sidebar-accent-foreground: oklch(0.97 0 0);
-  --sidebar-border: oklch(0.26 0 0);
+  --sidebar-accent: oklch(0.955 0.003 100);
+  --sidebar-accent-foreground: oklch(0.20 0.005 260);
+  --sidebar-border: oklch(0.90 0.004 260);
   --sidebar-ring: oklch(0.94 0.19 118);
 }
 
@@ -153,7 +153,7 @@
     font-feature-settings: "ss01", "cv11";
   }
   html, #root { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
-  html { color-scheme: dark; }
+  html { color-scheme: light; }
   :where(button, a, [role="button"]) { touch-action: manipulation; }
   :focus-visible {
     outline: 2px solid var(--color-primary);
@@ -192,17 +192,17 @@
 }
 
 @utility glass {
-  background-color: rgba(20, 22, 25, 0.55);
+  background-color: rgba(255, 255, 255, 0.72);
   backdrop-filter: blur(20px) saturate(140%);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-top-color: rgba(255, 255, 255, 0.10);
-  box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.03) inset,
-              0 10px 30px -12px rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(15, 18, 22, 0.06);
+  border-top-color: rgba(15, 18, 22, 0.04);
+  box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.6) inset,
+              0 8px 24px -14px rgba(15, 18, 22, 0.12);
 }
 
 @media (prefers-reduced-transparency: reduce) {
   .glass {
-    background-color: #141619;
+    background-color: #ffffff;
     backdrop-filter: none;
   }
 }

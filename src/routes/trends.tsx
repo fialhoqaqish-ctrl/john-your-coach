@@ -221,6 +221,7 @@ function RangeToggle({ value, onChange }: { value: Range; onChange: (r: Range) =
 function RhythmCard({ d }: { d: Dashboard }) {
   const weeks = d.rhythm?.weeks ?? [];
   const band = d.rhythm?.band;
+  const [hoverIdx, setHoverIdx] = useState<number | null>(null);
   if (weeks.length === 0) {
     return (
       <Card>
@@ -262,16 +263,25 @@ function RhythmCard({ d }: { d: Dashboard }) {
           </>
         )}
         <div className="absolute inset-0 flex items-end gap-1">
-          {weeks.map((w) => {
+          {weeks.map((w, wi) => {
             const active = w.state === "in";
             const color = active ? "var(--color-primary)" : "var(--color-muted-foreground)";
-            const opacity = active ? 0.95 : 0.4;
+            const isHover = hoverIdx === wi;
+            const opacity = isHover ? 1 : active ? 0.95 : 0.4;
             const segH = Math.max(2, u - 2);
             return (
               <div
                 key={w.week}
-                className="flex-1 flex flex-col-reverse gap-[2px]"
+                className="flex-1 flex flex-col-reverse gap-[2px] cursor-pointer relative"
                 aria-label={`${w.week}: ${w.volume} sessions`}
+                role="button"
+                tabIndex={0}
+                onMouseEnter={() => setHoverIdx(wi)}
+                onMouseLeave={() => setHoverIdx((v) => (v === wi ? null : v))}
+                onFocus={() => setHoverIdx(wi)}
+                onBlur={() => setHoverIdx((v) => (v === wi ? null : v))}
+                onTouchStart={() => setHoverIdx(wi)}
+                onClick={() => setHoverIdx((v) => (v === wi ? null : wi))}
               >
                 {Array.from({ length: w.volume }).map((_, i) => (
                   <div
@@ -283,6 +293,13 @@ function RhythmCard({ d }: { d: Dashboard }) {
             );
           })}
         </div>
+        {hoverIdx != null && weeks[hoverIdx] && (
+          <RhythmTooltip
+            week={weeks[hoverIdx].week}
+            sessions={weeks[hoverIdx].sessions ?? []}
+            align={hoverIdx / Math.max(1, weeks.length - 1)}
+          />
+        )}
       </div>
       <div className="mt-2 flex justify-between text-[10px] tabular text-muted-foreground">
         <span>{weeks[0].week}</span>
@@ -290,6 +307,38 @@ function RhythmCard({ d }: { d: Dashboard }) {
       </div>
       <Verdict>{d.rhythm?.headline ?? "Volume in your sustainable band."}</Verdict>
     </Card>
+  );
+}
+
+function RhythmTooltip({
+  week,
+  sessions,
+  align,
+}: {
+  week: string;
+  sessions: RhythmSession[];
+  align: number;
+}) {
+  const left = `${Math.min(80, Math.max(0, align * 100))}%`;
+  const transform =
+    align < 0.15 ? "translateX(0)" : align > 0.85 ? "translateX(-100%)" : "translateX(-50%)";
+  return (
+    <div
+      role="tooltip"
+      className="absolute -top-2 z-20 -translate-y-full rounded-lg bg-foreground/95 px-3 py-2 text-[11px] leading-snug text-background shadow-lg max-w-[240px]"
+      style={{ left, transform }}
+    >
+      <div className="mb-1 text-[10px] uppercase tracking-[0.14em] opacity-70">{week}</div>
+      {sessions.length === 0 ? (
+        <div className="opacity-80">no sessions logged</div>
+      ) : (
+        <ul className="space-y-0.5">
+          {sessions.map((s, i) => (
+            <li key={i} className="tabular">{s.label}</li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }
 
@@ -337,6 +386,12 @@ function RhrCard({ d }: { d: Dashboard }) {
               dot={false}
               animationDuration={400}
             />
+            <Tooltip
+              cursor={{ stroke: "var(--color-muted-foreground)", strokeOpacity: 0.3 }}
+              content={makeDateValueTooltip({
+                formatValue: (v) => `${fmtInt(v)} bpm`,
+              })}
+            />
           </LineChart>
         </ResponsiveContainer>
       </div>
@@ -382,6 +437,12 @@ function Vo2Card({ d }: { d: Dashboard }) {
               tick={{ fill: "var(--color-muted-foreground)", fontSize: 10 }}
             />
             <Line type="monotone" dataKey="vo2max" stroke="var(--color-primary)" strokeWidth={2} dot={false} animationDuration={400} />
+            <Tooltip
+              cursor={{ stroke: "var(--color-muted-foreground)", strokeOpacity: 0.3 }}
+              content={makeDateValueTooltip({
+                formatValue: (v) => `${(v as number).toFixed(1)} VO₂max`,
+              })}
+            />
           </LineChart>
         </ResponsiveContainer>
       </div>

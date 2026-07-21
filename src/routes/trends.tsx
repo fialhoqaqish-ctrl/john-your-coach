@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { Info } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Card, SectionLabel, EmptyLine, Verdict, BaselineForming } from "@/components/ui-bits";
 import { useDashboard } from "@/lib/useDashboard";
-import { fmtPct, fmtInt } from "@/lib/format";
-import { fmtShortDate } from "@/lib/format";
+import { fmtPct, fmtInt, fmtPaceSec, fmtShortDate } from "@/lib/format";
+import { makeDateValueTooltip } from "@/components/ChartTooltip";
 import {
   LineChart,
   Line,
@@ -13,8 +14,9 @@ import {
   YAxis,
   ReferenceArea,
   ReferenceLine,
+  Tooltip,
 } from "recharts";
-import type { Dashboard } from "@/lib/types";
+import type { Dashboard, RhythmSession } from "@/lib/types";
 
 export const Route = createFileRoute("/trends")({ component: TrendsPage });
 
@@ -92,7 +94,7 @@ function AerobicCard({ d }: { d: Dashboard }) {
     return (
       <Card>
         <div className="flex items-baseline justify-between gap-2">
-          <SectionLabel>Aerobic efficiency</SectionLabel>
+          <AerobicHeader />
           {hasAny && <RangeToggle value={range} onChange={setRange} />}
         </div>
         <EmptyLine>Two runs needed to compare effort.</EmptyLine>
@@ -122,7 +124,7 @@ function AerobicCard({ d }: { d: Dashboard }) {
   return (
     <Card>
       <div className="flex items-baseline justify-between gap-2">
-        <SectionLabel>Aerobic efficiency</SectionLabel>
+        <AerobicHeader />
         <RangeToggle value={range} onChange={setRange} />
       </div>
       <p className="mt-1 text-sm text-muted-foreground">Rising line = quicker at the same effort.</p>
@@ -148,11 +150,46 @@ function AerobicCard({ d }: { d: Dashboard }) {
               isAnimationActive
               animationDuration={400}
             />
+            <Tooltip
+              cursor={{ stroke: "var(--color-muted-foreground)", strokeOpacity: 0.3 }}
+              content={makeDateValueTooltip({
+                dateKey: "period",
+                formatDate: (v) => String(v ?? ""),
+                formatValue: (v) => `${fmtPaceSec(v)} /km`,
+              })}
+            />
           </LineChart>
         </ResponsiveContainer>
       </div>
       <Verdict>{verdictLine}</Verdict>
     </Card>
+  );
+}
+
+function AerobicHeader() {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="relative inline-flex items-center gap-1.5">
+      <SectionLabel>Aerobic fitness (pace at easy effort)</SectionLabel>
+      <button
+        type="button"
+        aria-label="What is aerobic fitness?"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+        onBlur={() => setTimeout(() => setOpen(false), 120)}
+        className="text-muted-foreground hover:text-foreground focus-visible:text-foreground shrink-0"
+      >
+        <Info size={13} aria-hidden="true" />
+      </button>
+      {open && (
+        <div
+          role="tooltip"
+          className="absolute left-0 top-full z-20 mt-1.5 w-64 rounded-lg bg-foreground/95 px-3 py-2 text-[11px] leading-snug text-background shadow-lg"
+        >
+          Are you running faster at the same easy effort? We track your median easy-run pace over time. Quicker pace at the same heart rate = your aerobic engine is improving.
+        </div>
+      )}
+    </div>
   );
 }
 

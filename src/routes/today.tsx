@@ -16,6 +16,26 @@ import { ArrowUp, Check } from "lucide-react";
 
 export const Route = createFileRoute("/today")({ component: TodayPage });
 
+function toText(v: unknown): string {
+  if (v == null) return "";
+  if (typeof v === "string") return v;
+  if (typeof v === "number" || typeof v === "boolean") return String(v);
+  if (typeof v === "object") {
+    const o = v as Record<string, unknown>;
+    if (typeof o.focus === "string" && Array.isArray(o.exercises)) {
+      const ex = (o.exercises as unknown[])
+        .map((e) => (typeof e === "string" ? e : (e as { name?: string })?.name ?? ""))
+        .filter(Boolean)
+        .join(" · ");
+      return ex ? `${o.focus} — ${ex}` : String(o.focus);
+    }
+    if (typeof o.label === "string") return o.label;
+    if (typeof o.text === "string") return o.text;
+    try { return JSON.stringify(v); } catch { return ""; }
+  }
+  return String(v);
+}
+
 const READINESS = {
   ready: { word: "READY", color: "var(--color-success)", ring: "#5FD08A" },
   ease_in: { word: "EASE IN", color: "var(--color-warning)", ring: "#E8B14C" },
@@ -379,7 +399,7 @@ function ProgramCard({ onOpenWorkout }: { onOpenWorkout: (date: string) => void 
                 </span>
                 <span className="flex-1 min-w-0">
                   <span className={`block text-[15px] leading-snug ${s.done ? "line-through" : "text-foreground"}`}>
-                    {s.label}
+                    {toText(s.label)}
                   </span>
                   <span className="mt-1 flex items-center gap-2">
                     <KindChip kind={s.kind} />
@@ -424,17 +444,17 @@ function ProgramCard({ onOpenWorkout }: { onOpenWorkout: (date: string) => void 
       ) : (
         data?.plan_text && (
           <p className="mt-4 font-display text-4xl leading-[0.95] text-foreground text-balance">
-            {data.plan_text}
+            {toText(data.plan_text)}
           </p>
         )
       )}
 
       {data?.sessions && data.sessions.length > 0 && data.plan_text && (
-        <p className="mt-4 text-[14px] leading-relaxed text-muted-foreground">{data.plan_text}</p>
+        <p className="mt-4 text-[14px] leading-relaxed text-muted-foreground">{toText(data.plan_text)}</p>
       )}
       {data?.rationale && (
         <p className="mt-2 text-[12px] leading-relaxed text-muted-foreground/80">
-          {data.rationale}
+          {toText(data.rationale)}
         </p>
       )}
 

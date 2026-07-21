@@ -1,7 +1,8 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowUp, ChevronLeft } from "lucide-react";
+import { ArrowUp } from "lucide-react";
 import { apiFetch } from "@/lib/api";
+import { BottomTabs } from "@/components/AppShell";
 
 export const Route = createFileRoute("/coach")({
   component: CoachPage,
@@ -94,10 +95,7 @@ function CoachPage() {
 
   return (
     <div className="flex flex-col h-dvh bg-background text-foreground" style={{ overscrollBehavior: "contain" }}>
-      <header className="px-5 pt-6 pb-4 shrink-0 flex items-center gap-3 border-b border-border">
-        <Link to="/plan" aria-label="Back to Plan" className="text-muted-foreground hover:text-foreground">
-          <ChevronLeft size={20} aria-hidden="true" />
-        </Link>
+      <header className="px-5 pt-[calc(env(safe-area-inset-top,0px)+1.25rem)] pb-4 shrink-0 flex items-center gap-3 border-b border-border">
         <h1 className="text-[13px] uppercase tracking-[0.16em] text-muted-foreground">Coach</h1>
       </header>
 
@@ -141,7 +139,7 @@ function CoachPage() {
           e.preventDefault();
           send();
         }}
-        className="border-t border-border bg-background/95 backdrop-blur px-3 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] flex items-end gap-2"
+        className="border-t border-border bg-background/95 backdrop-blur px-3 py-3 mb-[calc(4.25rem+env(safe-area-inset-bottom,0px))] flex items-end gap-2"
       >
         <label htmlFor="chat-input" className="sr-only">
           Message John
@@ -169,6 +167,7 @@ function CoachPage() {
           <ArrowUp size={18} strokeWidth={2.5} aria-hidden="true" />
         </button>
       </form>
+      <BottomTabs />
     </div>
   );
 }

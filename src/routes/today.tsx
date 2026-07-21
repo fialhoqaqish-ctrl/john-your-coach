@@ -1,9 +1,10 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { Card, SectionLabel, EmptyLine, Verdict } from "@/components/ui-bits";
 import { useDashboard } from "@/lib/useDashboard";
 import { fmtInt, fmtWeekday } from "@/lib/format";
-import { BarChart, Bar, Cell, ReferenceLine, ResponsiveContainer, XAxis } from "recharts";
+import { BarChart, Bar, Cell, ReferenceLine, ResponsiveContainer, XAxis, Tooltip } from "recharts";
+import { makeDateValueTooltip } from "@/components/ChartTooltip";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api";
@@ -11,8 +12,11 @@ import type {
   TodayResponse,
   TodaySession,
   ChatMessage,
+  WorkoutResponse,
+  WorkoutExercise,
+  WorkoutSet,
 } from "@/lib/types";
-import { ArrowUp, Check } from "lucide-react";
+import { ArrowUp, Check, X, Plus } from "lucide-react";
 
 export const Route = createFileRoute("/today")({ component: TodayPage });
 
@@ -57,7 +61,7 @@ function TodayPage() {
       setFirstReveal(true);
     }
   }, [isReal]);
-  const navigate = useNavigate();
+  const [workoutDate, setWorkoutDate] = useState<string | null>(null);
   const onRefresh = useCallback(async () => {
     await Promise.all([
       refetch(),
@@ -80,7 +84,7 @@ function TodayPage() {
 
         {isLoading && <EmptyLine>Loading…</EmptyLine>}
         {error && <EmptyLine>Couldn't reach your data.</EmptyLine>}
-        <ProgramCard onOpenWorkout={(date: string) => navigate({ to: "/workout/$date", params: { date } })} />
+        <ProgramCard onOpenWorkout={(date: string) => setWorkoutDate(date)} />
         {data && isReal && <ReadinessHero d={data} firstReveal={firstReveal} />}
         {data && !isReal && <ReadinessAnticipatory />}
         {data && <StepsCard steps={data.steps} />}
@@ -90,6 +94,9 @@ function TodayPage() {
           </p>
         )}
       </main>
+      {workoutDate && (
+        <WorkoutSheet date={workoutDate} onClose={() => setWorkoutDate(null)} />
+      )}
     </AppShell>
   );
 }
@@ -264,6 +271,12 @@ function StepsCard({ steps }: { steps?: NonNullable<ReturnType<typeof useDashboa
                 />
               ))}
             </Bar>
+            <Tooltip
+              cursor={{ fill: "var(--color-muted-foreground)", fillOpacity: 0.08 }}
+              content={makeDateValueTooltip({
+                formatValue: (v) => `${fmtInt(v)} steps`,
+              })}
+            />
           </BarChart>
         </ResponsiveContainer>
       </div>

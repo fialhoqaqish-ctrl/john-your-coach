@@ -399,7 +399,7 @@ function ProgramCard({ onOpenWorkout }: { onOpenWorkout: (date: string) => void 
                 </span>
                 <span className="flex-1 min-w-0">
                   <span className={`block text-[15px] leading-snug ${s.done ? "line-through" : "text-foreground"}`}>
-                    {s.label}
+                    {toText(s.label)}
                   </span>
                   <span className="mt-1 flex items-center gap-2">
                     <KindChip kind={s.kind} />
@@ -444,17 +444,17 @@ function ProgramCard({ onOpenWorkout }: { onOpenWorkout: (date: string) => void 
       ) : (
         data?.plan_text && (
           <p className="mt-4 font-display text-4xl leading-[0.95] text-foreground text-balance">
-            {data.plan_text}
+            {toText(data.plan_text)}
           </p>
         )
       )}
 
       {data?.sessions && data.sessions.length > 0 && data.plan_text && (
-        <p className="mt-4 text-[14px] leading-relaxed text-muted-foreground">{data.plan_text}</p>
+        <p className="mt-4 text-[14px] leading-relaxed text-muted-foreground">{toText(data.plan_text)}</p>
       )}
       {data?.rationale && (
         <p className="mt-2 text-[12px] leading-relaxed text-muted-foreground/80">
-          {data.rationale}
+          {toText(data.rationale)}
         </p>
       )}
 

@@ -1,12 +1,13 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { Home, TrendingUp, User, Target } from "lucide-react";
+import { Home, TrendingUp, User, MessageCircle, Flag } from "lucide-react";
 import { useRef, useState, type ReactNode } from "react";
 
 const TABS = [
   { to: "/today", label: "Today", icon: Home },
   { to: "/trends", label: "Trends", icon: TrendingUp },
   { to: "/body", label: "Body", icon: User },
-  { to: "/plan", label: "Plan", icon: Target },
+  { to: "/coach", label: "Coach", icon: MessageCircle },
+  { to: "/milestones", label: "Milestones", icon: Flag },
 ] as const;
 
 export function AppShell({

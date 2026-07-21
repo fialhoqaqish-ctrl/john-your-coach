@@ -10,6 +10,43 @@ const TABS = [
   { to: "/milestones", label: "Milestones", icon: Flag },
 ] as const;
 
+export function BottomTabs() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  return (
+    <nav
+      aria-label="Primary"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 backdrop-blur"
+    >
+      <div className="mx-auto flex max-w-md">
+        {TABS.map((t) => {
+          const active = pathname.startsWith(t.to);
+          const Icon = t.icon;
+          return (
+            <Link
+              key={t.to}
+              to={t.to}
+              aria-current={active ? "page" : undefined}
+              className="flex-1 flex flex-col items-center gap-1 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))]"
+            >
+              <Icon
+                size={20}
+                aria-hidden="true"
+                className={active ? "text-primary" : "text-muted-foreground"}
+                strokeWidth={active ? 2.25 : 1.75}
+              />
+              <span
+                className={`text-[10px] font-medium tracking-wide ${active ? "text-foreground" : "text-muted-foreground"}`}
+              >
+                {t.label}
+              </span>
+            </Link>
+          );
+        })}
+      </div>
+    </nav>
+  );
+}
+
 export function AppShell({
   children,
   onRefresh,

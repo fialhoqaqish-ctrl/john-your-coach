@@ -3,6 +3,7 @@ import { AppShell } from "@/components/AppShell";
 import { Card, SectionLabel, EmptyLine, Verdict, Building, BaselineForming } from "@/components/ui-bits";
 import { useDashboard } from "@/lib/useDashboard";
 import { fmtInt, fmtShortDate } from "@/lib/format";
+import { makeDateValueTooltip } from "@/components/ChartTooltip";
 import {
   LineChart,
   Line,
@@ -15,6 +16,7 @@ import {
   XAxis,
   YAxis,
   ReferenceLine,
+  Tooltip,
 } from "recharts";
 import type { Dashboard } from "@/lib/types";
 
@@ -114,6 +116,12 @@ function WeightHero({ d }: { d: Dashboard }) {
               dot={false}
               animationDuration={400}
             />
+            <Tooltip
+              cursor={{ stroke: "var(--color-muted-foreground)", strokeOpacity: 0.3 }}
+              content={makeDateValueTooltip({
+                formatValue: (_v, row) => `${(row.weight as number).toFixed(1)} kg`,
+              })}
+            />
           </ComposedChart>
         </ResponsiveContainer>
       </div>
@@ -210,6 +218,12 @@ function SleepCard({ d }: { d: Dashboard }) {
                 />
               ))}
             </Bar>
+            <Tooltip
+              cursor={{ fill: "var(--color-muted-foreground)", fillOpacity: 0.08 }}
+              content={makeDateValueTooltip({
+                formatValue: (v) => `${(v as number).toFixed(1)} h sleep`,
+              })}
+            />
           </BarChart>
         </ResponsiveContainer>
       </div>

@@ -22,7 +22,12 @@ export interface Dashboard {
   rhythm?: {
     headline?: string | null;
     band?: { low: number; high: number } | null;
-    weeks?: { week: string; volume: number; state: "in" | "over" | "under" | string }[] | null;
+    weeks?: {
+      week: string;
+      volume: number;
+      state: "in" | "over" | "under" | string;
+      sessions?: RhythmSession[] | null;
+    }[] | null;
   } | null;
   wellness?: {
     rhr?: number | null;
@@ -45,13 +50,15 @@ export interface Dashboard {
     month?: { period: string; median_pace_sec: number }[] | null;
     quarter?: { period: string; median_pace_sec: number }[] | null;
   } | null;
-  next_race?: { name: string; date: string } | null;
+  next_race?: { name: string; date: string; priority?: string | null } | null;
   goals?: Goal[] | null;
   north_star?: {
     headline?: string | null;
     line?: string | null;
     detail?: string | null;
     review_date?: string | null;
+    trajectory?: string | null;
+    metrics?: string[] | null;
   } | null;
   coach_line?: string | null;
   today_session?: string | null;
@@ -61,7 +68,17 @@ export interface Goal {
   type?: string;
   title?: string;
   why?: string;
+  priority?: string | null;
   milestones?: Milestone[] | null;
+}
+
+export interface RhythmSession {
+  date: string;
+  label: string;
+  type?: string | null;
+  distance_km?: number | null;
+  duration_min?: number | null;
+  effort?: string | null;
 }
 
 export interface Milestone {

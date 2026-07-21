@@ -3,6 +3,7 @@ import { AppShell } from "@/components/AppShell";
 import { Card, SectionLabel, EmptyLine, Verdict, Building, BaselineForming } from "@/components/ui-bits";
 import { useDashboard } from "@/lib/useDashboard";
 import { fmtInt, fmtShortDate } from "@/lib/format";
+import { makeDateValueTooltip } from "@/components/ChartTooltip";
 import {
   LineChart,
   Line,
@@ -15,6 +16,7 @@ import {
   XAxis,
   YAxis,
   ReferenceLine,
+  Tooltip,
 } from "recharts";
 import type { Dashboard } from "@/lib/types";
 

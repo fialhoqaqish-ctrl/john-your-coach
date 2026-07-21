@@ -2,8 +2,8 @@ import type { ReactNode } from "react";
 import { fmtShortDate } from "@/lib/format";
 
 type PayloadEntry = {
-  value: number;
-  payload: Record<string, unknown>;
+  value?: number;
+  payload?: Record<string, unknown>;
 };
 
 type TooltipProps = {
@@ -18,16 +18,18 @@ export function makeDateValueTooltip(opts: {
   formatDate?: (raw: unknown) => string;
 }) {
   const { dateKey = "date", formatValue, formatDate } = opts;
-  return function DateValueTooltip({ active, payload }: TooltipProps) {
+  return function DateValueTooltip(props: unknown) {
+    const { active, payload } = (props ?? {}) as TooltipProps;
     if (!active || !payload || payload.length === 0) return null;
-    const row = payload[0].payload;
+    const row = payload[0].payload ?? {};
     const rawDate = row?.[dateKey];
     const dateStr = formatDate ? formatDate(rawDate) : fmtShortDate(rawDate as string);
+    const val = payload[0].value ?? 0;
     return (
       <TooltipShell>
         <span className="opacity-70">{dateStr}</span>
         <span className="mx-1.5 opacity-40">—</span>
-        <span className="tabular">{formatValue(payload[0].value, row)}</span>
+        <span className="tabular">{formatValue(val, row)}</span>
       </TooltipShell>
     );
   };

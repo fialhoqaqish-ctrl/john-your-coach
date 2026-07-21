@@ -79,7 +79,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "JOHN — Your Coach" },
       { name: "description", content: "JOHN is your bold, no-excuses coach. Track readiness, volume, pace, and chat with your coach." },
-      { name: "theme-color", content: "#0B0C0E" },
+      { name: "theme-color", content: "#F5F5F3" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
       { name: "apple-mobile-web-app-title", content: "JOHN" },

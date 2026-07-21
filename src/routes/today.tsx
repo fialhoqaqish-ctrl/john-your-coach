@@ -16,6 +16,26 @@ import { ArrowUp, Check } from "lucide-react";
 
 export const Route = createFileRoute("/today")({ component: TodayPage });
 
+function toText(v: unknown): string {
+  if (v == null) return "";
+  if (typeof v === "string") return v;
+  if (typeof v === "number" || typeof v === "boolean") return String(v);
+  if (typeof v === "object") {
+    const o = v as Record<string, unknown>;
+    if (typeof o.focus === "string" && Array.isArray(o.exercises)) {
+      const ex = (o.exercises as unknown[])
+        .map((e) => (typeof e === "string" ? e : (e as { name?: string })?.name ?? ""))
+        .filter(Boolean)
+        .join(" · ");
+      return ex ? `${o.focus} — ${ex}` : String(o.focus);
+    }
+    if (typeof o.label === "string") return o.label;
+    if (typeof o.text === "string") return o.text;
+    try { return JSON.stringify(v); } catch { return ""; }
+  }
+  return String(v);
+}
+
 const READINESS = {
   ready: { word: "READY", color: "var(--color-success)", ring: "#5FD08A" },
   ease_in: { word: "EASE IN", color: "var(--color-warning)", ring: "#E8B14C" },

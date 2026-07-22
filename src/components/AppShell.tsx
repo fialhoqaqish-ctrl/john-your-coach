@@ -1,8 +1,9 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { Home, TrendingUp, User, MessageCircle, Flag } from "lucide-react";
+import { Wallet, Home, TrendingUp, User, MessageCircle, Flag } from "lucide-react";
 import { useRef, useState, type ReactNode } from "react";
 
 const TABS = [
+  { to: "/portfolio", label: "Portfolio", icon: Wallet },
   { to: "/today", label: "Today", icon: Home },
   { to: "/trends", label: "Trends", icon: TrendingUp },
   { to: "/body", label: "Body", icon: User },

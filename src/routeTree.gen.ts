@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TrendsRouteImport } from './routes/trends'
 import { Route as TodayRouteImport } from './routes/today'
+import { Route as PortfolioRouteImport } from './routes/portfolio'
 import { Route as MilestonesRouteImport } from './routes/milestones'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as CoachRouteImport } from './routes/coach'
@@ -26,6 +27,11 @@ const TrendsRoute = TrendsRouteImport.update({
 const TodayRoute = TodayRouteImport.update({
   id: '/today',
   path: '/today',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortfolioRoute = PortfolioRouteImport.update({
+  id: '/portfolio',
+  path: '/portfolio',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MilestonesRoute = MilestonesRouteImport.update({
@@ -65,6 +71,7 @@ export interface FileRoutesByFullPath {
   '/coach': typeof CoachRoute
   '/login': typeof LoginRoute
   '/milestones': typeof MilestonesRoute
+  '/portfolio': typeof PortfolioRoute
   '/today': typeof TodayRoute
   '/trends': typeof TrendsRoute
   '/workout/$date': typeof WorkoutDateRoute
@@ -75,6 +82,7 @@ export interface FileRoutesByTo {
   '/coach': typeof CoachRoute
   '/login': typeof LoginRoute
   '/milestones': typeof MilestonesRoute
+  '/portfolio': typeof PortfolioRoute
   '/today': typeof TodayRoute
   '/trends': typeof TrendsRoute
   '/workout/$date': typeof WorkoutDateRoute
@@ -86,6 +94,7 @@ export interface FileRoutesById {
   '/coach': typeof CoachRoute
   '/login': typeof LoginRoute
   '/milestones': typeof MilestonesRoute
+  '/portfolio': typeof PortfolioRoute
   '/today': typeof TodayRoute
   '/trends': typeof TrendsRoute
   '/workout/$date': typeof WorkoutDateRoute
@@ -98,6 +107,7 @@ export interface FileRouteTypes {
     | '/coach'
     | '/login'
     | '/milestones'
+    | '/portfolio'
     | '/today'
     | '/trends'
     | '/workout/$date'
@@ -108,6 +118,7 @@ export interface FileRouteTypes {
     | '/coach'
     | '/login'
     | '/milestones'
+    | '/portfolio'
     | '/today'
     | '/trends'
     | '/workout/$date'
@@ -118,6 +129,7 @@ export interface FileRouteTypes {
     | '/coach'
     | '/login'
     | '/milestones'
+    | '/portfolio'
     | '/today'
     | '/trends'
     | '/workout/$date'
@@ -129,6 +141,7 @@ export interface RootRouteChildren {
   CoachRoute: typeof CoachRoute
   LoginRoute: typeof LoginRoute
   MilestonesRoute: typeof MilestonesRoute
+  PortfolioRoute: typeof PortfolioRoute
   TodayRoute: typeof TodayRoute
   TrendsRoute: typeof TrendsRoute
   WorkoutDateRoute: typeof WorkoutDateRoute
@@ -148,6 +161,13 @@ declare module '@tanstack/react-router' {
       path: '/today'
       fullPath: '/today'
       preLoaderRoute: typeof TodayRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portfolio': {
+      id: '/portfolio'
+      path: '/portfolio'
+      fullPath: '/portfolio'
+      preLoaderRoute: typeof PortfolioRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/milestones': {
@@ -201,6 +221,7 @@ const rootRouteChildren: RootRouteChildren = {
   CoachRoute: CoachRoute,
   LoginRoute: LoginRoute,
   MilestonesRoute: MilestonesRoute,
+  PortfolioRoute: PortfolioRoute,
   TodayRoute: TodayRoute,
   TrendsRoute: TrendsRoute,
   WorkoutDateRoute: WorkoutDateRoute,
@@ -208,13 +229,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

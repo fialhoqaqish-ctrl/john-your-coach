@@ -43,6 +43,7 @@ interface HeroResponse {
     line?: string | null;
     acute_7d_km?: number | null;
     chronic_weekly_km?: number | null;
+    basis?: string | null;
   };
   race: {
     name: string; date: string; distance?: string;
@@ -56,6 +57,8 @@ interface HeroResponse {
   }>;
   deposits: {
     followed: number; modified: number; planned: number; rate: number;
+    uncounted?: number | null;
+    coverage?: number | null;
     days: Array<{ date: string; verdict?: string; followed?: boolean }>;
   };
 }

@@ -193,16 +193,33 @@ function AthleteView({ q }: { q: ReturnType<typeof useQuery<HeroResponse>> }) {
   if (q.error) return <QuietLine>Couldn't reach your data.</QuietLine>;
   const d = q.data;
   if (!d) return null;
+  const assets = dedupeBaselineNotes(d.assets ?? []);
   return (
     <div className="space-y-5">
       <Hero hero={d.hero} />
       <ReadinessStrip readiness={d.readiness} />
-      <AssetGrid assets={d.assets ?? []} />
+      <AssetGrid assets={assets} />
       <RiskGauge risk={d.risk} />
       {d.race && <RaceCard race={d.race} />}
       <DepositsRow deposits={d.deposits} />
     </div>
   );
+}
+
+function dedupeBaselineNotes(assets: HeroResponse["assets"]): HeroResponse["assets"] {
+  const isBaseline = (a: HeroResponse["assets"][number]) =>
+    /garmin syncs|baseline|building history|~\s*\d+\s*days/i.test(a.note ?? "") &&
+    (a.value == null || /^(—|NO_DATA|no_data|\s*)$/.test(String(a.value).trim()));
+  const baselineOnes = assets.filter(isBaseline);
+  if (baselineOnes.length <= 1) return assets;
+  const keep = assets.filter((a) => !isBaseline(a));
+  keep.push({
+    key: "baseline-consolidated",
+    label: "Baseline forming",
+    value: "—",
+    note: `Unlocks as data syncs · ${baselineOnes.map((b) => b.label).join(", ")}`,
+  });
+  return keep;
 }
 
 function QuietLine({ children }: { children: React.ReactNode }) {

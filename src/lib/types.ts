@@ -38,6 +38,9 @@ export interface Dashboard {
     vo2max?: number | null;
     vo2max_series?: { date: string; vo2max: number }[] | null;
     weight?: { date: string; weight: number }[] | null;
+    weight_current?: number | null;
+    weight_delta_30d?: number | null;
+    weight_goal_direction?: "down" | "up" | "hold" | null;
   } | null;
   nutrition?: {
     protein_g?: number | null;

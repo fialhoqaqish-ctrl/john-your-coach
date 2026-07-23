@@ -496,6 +496,11 @@ function RiskGauge({ risk }: { risk: HeroResponse["risk"] }) {
       <p className="mt-3 text-[13px] leading-relaxed" style={{ color: noData ? T.muted : T.text }}>
         {noData ? "Not enough load history yet." : (risk.line ?? "")}
       </p>
+      {!noData && risk.basis && (
+        <p className="mt-1 text-[11px] uppercase tracking-[0.14em]" style={{ color: T.muted }}>
+          Basis · {risk.basis}
+        </p>
+      )}
     </Panel>
   );
 }

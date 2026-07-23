@@ -549,14 +549,24 @@ function RaceCard({ race }: { race: NonNullable<HeroResponse["race"]> }) {
 
 function DepositsRow({ deposits }: { deposits: HeroResponse["deposits"] }) {
   const days = (deposits.days ?? []).slice(-7);
+  const coverage = deposits.coverage ?? 1;
+  const hideRatio = coverage < 0.7 || deposits.planned < 2;
   return (
     <Panel>
       <div className="flex items-baseline justify-between">
         <Caption>Deposits this week</Caption>
-        <span className="text-[12px] tabular" style={{ color: T.text }}>
-          {deposits.followed}/{deposits.planned}
-        </span>
+        {!hideRatio && (
+          <span className="text-[12px] tabular" style={{ color: T.text }}>
+            {deposits.followed}/{deposits.planned}
+          </span>
+        )}
       </div>
+      {hideRatio ? (
+        <p className="mt-3 text-[13px] leading-relaxed" style={{ color: T.muted }}>
+          Syncing your week — plan coverage building.
+        </p>
+      ) : (
+      <>
       <div className="mt-4 grid grid-cols-7 gap-1.5">
         {Array.from({ length: 7 }).map((_, i) => {
           const d = days[i];
@@ -587,6 +597,8 @@ function DepositsRow({ deposits }: { deposits: HeroResponse["deposits"] }) {
       <p className="mt-3 text-[12px] leading-relaxed" style={{ color: T.muted }}>
         A followed rest day counts. We reward adherence, not volume.
       </p>
+      </>
+      )}
     </Panel>
   );
 }

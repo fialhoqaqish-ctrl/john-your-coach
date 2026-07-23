@@ -385,6 +385,14 @@ function AssetCard({ a }: { a: HeroResponse["assets"][number] }) {
   const buying = a.key === "recovery" && /buying recovery/i.test(a.note ?? "");
   const trendColor =
     a.trend === "RISING" ? T.lime : a.trend === "SLIPPING" ? T.amber : T.muted;
+  const trendLabel =
+    a.trend === "RISING" ? "Rising"
+    : a.trend === "SLIPPING" ? "Slipping"
+    : a.trend === "HOLDING" ? "Holding steady"
+    : null;
+  const rawValue = (a.value ?? "").toString();
+  const isEnumValue = /^(NO_DATA|HOLDING|RISING|SLIPPING|no_data|holding)$/.test(rawValue.trim());
+  const displayValue = isEnumValue || !rawValue.trim() ? "—" : rawValue;
   return (
     <Panel accent={buying} className="!p-4">
       <Caption>{a.label}</Caption>
@@ -392,9 +400,9 @@ function AssetCard({ a }: { a: HeroResponse["assets"][number] }) {
         className="mt-2 tabular"
         style={{ color: T.text, fontSize: 22, fontWeight: 600, letterSpacing: "-0.01em" }}
       >
-        {a.value}
+        {displayValue}
       </p>
-      {a.trend && (
+      {trendLabel && (
         <span
           className="mt-2 inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium tracking-wide"
           style={{
@@ -403,7 +411,7 @@ function AssetCard({ a }: { a: HeroResponse["assets"][number] }) {
             border: `1px solid ${trendColor}33`,
           }}
         >
-          {a.trend}
+          {trendLabel}
         </span>
       )}
       {a.note && (

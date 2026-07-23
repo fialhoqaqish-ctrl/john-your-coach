@@ -56,7 +56,10 @@ function rollingAvg(pts: { date: string; weight: number }[], window = 7) {
 
 function WeightHero({ d }: { d: Dashboard }) {
   const pts = d.body?.weight ?? [];
-  if (pts.length < 3) {
+  const canonicalCurrent = d.body?.weight_current ?? null;
+  const canonicalDelta = d.body?.weight_delta_30d ?? null;
+  const goalDir = d.body?.weight_goal_direction ?? "down";
+  if (pts.length < 3 && canonicalCurrent == null) {
     return (
       <Card>
         <SectionLabel>Weight</SectionLabel>
@@ -65,34 +68,40 @@ function WeightHero({ d }: { d: Dashboard }) {
     );
   }
   const withAvg = rollingAvg(pts);
-  const firstAvg = withAvg[0].avg;
-  const lastAvg = withAvg[withAvg.length - 1].avg;
-  const trendingDown = lastAvg < firstAvg;
-  // 2-week rolling trend for verdict (cut goal: down is good).
-  const recent = withAvg.slice(-14);
-  const twoWeekDelta = recent.length >= 2 ? recent[recent.length - 1].avg - recent[0].avg : 0;
-  const rollingRising = twoWeekDelta > 0.2; // kg
+  const lastAvg = withAvg.length ? withAvg[withAvg.length - 1].avg : (canonicalCurrent ?? 0);
+  const displayCurrent = canonicalCurrent ?? lastAvg;
+  // Prefer backend-canonical 30d delta; only fall back to a computed one.
+  const delta =
+    canonicalDelta != null
+      ? canonicalDelta
+      : withAvg.length
+        ? withAvg[withAvg.length - 1].avg - withAvg[0].avg
+        : 0;
+  // On a cut (goal: down), an upward delta is off-trajectory → amber.
+  const offTrajectory = goalDir === "down" ? delta > 0.2 : goalDir === "up" ? delta < -0.2 : Math.abs(delta) > 0.5;
   const values = pts.map((p) => p.weight);
   const avgs = withAvg.map((p) => p.avg);
-  const domainMin = Math.min(...values, ...avgs);
-  const domainMax = Math.max(...values, ...avgs);
+  const domainMin = values.length ? Math.min(...values, ...avgs) : displayCurrent - 1;
+  const domainMax = values.length ? Math.max(...values, ...avgs) : displayCurrent + 1;
   const spread = domainMax - domainMin;
   const pad = spread * 0.25 || 0.3;
   const goal = domainMin - pad * 0.5; // subtle goal line below current range
-  const firstDate = pts[0].date;
-  const lastDate = pts[pts.length - 1].date;
-  const verdict = rollingRising
-    ? "Trend ticking up — tighten intake."
-    : "Up today — 7-day trend still on track. Normal noise on a cut.";
+  const firstDate = pts[0]?.date;
+  const lastDate = pts[pts.length - 1]?.date;
+  const verdict = offTrajectory
+    ? "Trend drifting off target — sustained, not a single reading."
+    : "On track. Day-to-day noise is normal.";
+  const deltaColor = offTrajectory ? "var(--color-warning)" : "var(--color-muted-foreground)";
   return (
     <section>
       <SectionLabel>Weight</SectionLabel>
       <div className="flex items-baseline gap-3 mt-2">
-        <p className="font-display text-6xl leading-none tabular">{lastAvg.toFixed(1)}</p>
-        <span className="text-sm text-muted-foreground tabular">
-          {trendingDown ? "▼" : "▲"} {Math.abs(lastAvg - firstAvg).toFixed(1)} kg
+        <p className="font-display text-6xl leading-none tabular">{displayCurrent.toFixed(1)}</p>
+        <span className="text-sm tabular" style={{ color: deltaColor }}>
+          {delta > 0 ? "▲" : delta < 0 ? "▼" : "•"} {Math.abs(delta).toFixed(1)} kg · 30d
         </span>
       </div>
+      {withAvg.length > 0 && (
       <div className="mt-4 h-36">
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={withAvg} margin={{ top: 6, right: 6, bottom: 18, left: 0 }}>
@@ -111,7 +120,7 @@ function WeightHero({ d }: { d: Dashboard }) {
             <Line
               type="linear"
               dataKey="avg"
-              stroke={rollingRising ? "var(--color-foreground)" : "var(--color-primary)"}
+              stroke={offTrajectory ? "var(--color-warning)" : "var(--color-primary)"}
               strokeWidth={2.5}
               dot={false}
               animationDuration={400}
@@ -125,6 +134,7 @@ function WeightHero({ d }: { d: Dashboard }) {
           </ComposedChart>
         </ResponsiveContainer>
       </div>
+      )}
       <Verdict>{verdict}</Verdict>
     </section>
   );
@@ -151,7 +161,11 @@ function ProteinCard({ d }: { d: Dashboard }) {
       </Card>
     );
   }
-  const pct = Math.min(100, (cur / target) * 100);
+  const raw = (cur / target) * 100;
+  const pct = Math.min(100, raw);
+  const over = cur > target ? Math.round(cur - target) : 0;
+  const met = cur >= target;
+  const fillColor = met ? "var(--color-success, #5FD08A)" : "var(--color-primary)";
   return (
     <Card>
       <SectionLabel>Protein · muscle protected</SectionLabel>
@@ -160,8 +174,13 @@ function ProteinCard({ d }: { d: Dashboard }) {
         <span className="text-sm text-muted-foreground tabular">/ {fmtInt(target)} g</span>
       </div>
       <div className="mt-3 h-1.5 w-full rounded-full bg-border overflow-hidden">
-        <div className="h-full bg-primary" style={{ width: `${pct}%`, transition: "width 400ms" }} />
+        <div className="h-full" style={{ width: `${pct}%`, background: fillColor, transition: "width 400ms" }} />
       </div>
+      {met && (
+        <p className="mt-2 text-xs tabular" style={{ color: "var(--color-success, #5FD08A)" }}>
+          Target met{over > 0 ? ` · +${over} g over` : ""}
+        </p>
+      )}
       {history.length > 0 && (
         <div className="mt-4 grid gap-1" style={{ gridTemplateColumns: "repeat(14, minmax(0, 1fr))" }}>
           {history.slice(-14).map((h) => {

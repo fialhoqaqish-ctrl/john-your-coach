@@ -43,6 +43,7 @@ interface HeroResponse {
     line?: string | null;
     acute_7d_km?: number | null;
     chronic_weekly_km?: number | null;
+    basis?: string | null;
   };
   race: {
     name: string; date: string; distance?: string;
@@ -56,6 +57,8 @@ interface HeroResponse {
   }>;
   deposits: {
     followed: number; modified: number; planned: number; rate: number;
+    uncounted?: number | null;
+    coverage?: number | null;
     days: Array<{ date: string; verdict?: string; followed?: boolean }>;
   };
 }
@@ -190,16 +193,33 @@ function AthleteView({ q }: { q: ReturnType<typeof useQuery<HeroResponse>> }) {
   if (q.error) return <QuietLine>Couldn't reach your data.</QuietLine>;
   const d = q.data;
   if (!d) return null;
+  const assets = dedupeBaselineNotes(d.assets ?? []);
   return (
     <div className="space-y-5">
       <Hero hero={d.hero} />
       <ReadinessStrip readiness={d.readiness} />
-      <AssetGrid assets={d.assets ?? []} />
+      <AssetGrid assets={assets} />
       <RiskGauge risk={d.risk} />
       {d.race && <RaceCard race={d.race} />}
       <DepositsRow deposits={d.deposits} />
     </div>
   );
+}
+
+function dedupeBaselineNotes(assets: HeroResponse["assets"]): HeroResponse["assets"] {
+  const isBaseline = (a: HeroResponse["assets"][number]) =>
+    /garmin syncs|baseline|building history|~\s*\d+\s*days/i.test(a.note ?? "") &&
+    (a.value == null || /^(—|NO_DATA|no_data|\s*)$/.test(String(a.value).trim()));
+  const baselineOnes = assets.filter(isBaseline);
+  if (baselineOnes.length <= 1) return assets;
+  const keep = assets.filter((a) => !isBaseline(a));
+  keep.push({
+    key: "baseline-consolidated",
+    label: "Baseline forming",
+    value: "—",
+    note: `Unlocks as data syncs · ${baselineOnes.map((b) => b.label).join(", ")}`,
+  });
+  return keep;
 }
 
 function QuietLine({ children }: { children: React.ReactNode }) {
@@ -382,6 +402,14 @@ function AssetCard({ a }: { a: HeroResponse["assets"][number] }) {
   const buying = a.key === "recovery" && /buying recovery/i.test(a.note ?? "");
   const trendColor =
     a.trend === "RISING" ? T.lime : a.trend === "SLIPPING" ? T.amber : T.muted;
+  const trendLabel =
+    a.trend === "RISING" ? "Rising"
+    : a.trend === "SLIPPING" ? "Slipping"
+    : a.trend === "HOLDING" ? "Holding steady"
+    : null;
+  const rawValue = (a.value ?? "").toString();
+  const isEnumValue = /^(NO_DATA|HOLDING|RISING|SLIPPING|no_data|holding)$/.test(rawValue.trim());
+  const displayValue = isEnumValue || !rawValue.trim() ? "—" : rawValue;
   return (
     <Panel accent={buying} className="!p-4">
       <Caption>{a.label}</Caption>
@@ -389,9 +417,9 @@ function AssetCard({ a }: { a: HeroResponse["assets"][number] }) {
         className="mt-2 tabular"
         style={{ color: T.text, fontSize: 22, fontWeight: 600, letterSpacing: "-0.01em" }}
       >
-        {a.value}
+        {displayValue}
       </p>
-      {a.trend && (
+      {trendLabel && (
         <span
           className="mt-2 inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium tracking-wide"
           style={{
@@ -400,7 +428,7 @@ function AssetCard({ a }: { a: HeroResponse["assets"][number] }) {
             border: `1px solid ${trendColor}33`,
           }}
         >
-          {a.trend}
+          {trendLabel}
         </span>
       )}
       {a.note && (
@@ -468,6 +496,11 @@ function RiskGauge({ risk }: { risk: HeroResponse["risk"] }) {
       <p className="mt-3 text-[13px] leading-relaxed" style={{ color: noData ? T.muted : T.text }}>
         {noData ? "Not enough load history yet." : (risk.line ?? "")}
       </p>
+      {!noData && risk.basis && (
+        <p className="mt-1 text-[11px] uppercase tracking-[0.14em]" style={{ color: T.muted }}>
+          Basis · {risk.basis}
+        </p>
+      )}
     </Panel>
   );
 }
@@ -516,14 +549,24 @@ function RaceCard({ race }: { race: NonNullable<HeroResponse["race"]> }) {
 
 function DepositsRow({ deposits }: { deposits: HeroResponse["deposits"] }) {
   const days = (deposits.days ?? []).slice(-7);
+  const coverage = deposits.coverage ?? 1;
+  const hideRatio = coverage < 0.7 || deposits.planned < 2;
   return (
     <Panel>
       <div className="flex items-baseline justify-between">
         <Caption>Deposits this week</Caption>
-        <span className="text-[12px] tabular" style={{ color: T.text }}>
-          {deposits.followed}/{deposits.planned}
-        </span>
+        {!hideRatio && (
+          <span className="text-[12px] tabular" style={{ color: T.text }}>
+            {deposits.followed}/{deposits.planned}
+          </span>
+        )}
       </div>
+      {hideRatio ? (
+        <p className="mt-3 text-[13px] leading-relaxed" style={{ color: T.muted }}>
+          Syncing your week — plan coverage building.
+        </p>
+      ) : (
+      <>
       <div className="mt-4 grid grid-cols-7 gap-1.5">
         {Array.from({ length: 7 }).map((_, i) => {
           const d = days[i];
@@ -554,6 +597,8 @@ function DepositsRow({ deposits }: { deposits: HeroResponse["deposits"] }) {
       <p className="mt-3 text-[12px] leading-relaxed" style={{ color: T.muted }}>
         A followed rest day counts. We reward adherence, not volume.
       </p>
+      </>
+      )}
     </Panel>
   );
 }

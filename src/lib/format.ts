@@ -17,27 +17,35 @@ export function fmtPaceSec(sec: number | null | undefined): string {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
-const shortDate = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" });
-const weekday = new Intl.DateTimeFormat("en-US", { weekday: "short" });
+const shortDate = new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" });
+const weekday = new Intl.DateTimeFormat(undefined, { weekday: "short" });
+
+// Parse "YYYY-MM-DD" as a LOCAL calendar date, not UTC. Other ISO strings
+// (with time / Z) fall through to the native parser.
+function parseLocalDate(iso: string): Date {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+  if (m) return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  return new Date(iso);
+}
 
 export function fmtShortDate(iso: string | null | undefined): string {
   if (!iso) return "—";
-  const d = new Date(iso);
+  const d = parseLocalDate(iso);
   if (Number.isNaN(d.getTime())) return "—";
   return shortDate.format(d);
 }
 
 export function fmtWeekday(iso: string | null | undefined): string {
   if (!iso) return "";
-  const d = new Date(iso);
+  const d = parseLocalDate(iso);
   if (Number.isNaN(d.getTime())) return "";
   return weekday.format(d).slice(0, 1);
 }
 
 export function daysUntil(iso: string | null | undefined): number | null {
   if (!iso) return null;
-  const d = new Date(iso);
+  const d = parseLocalDate(iso);
   if (Number.isNaN(d.getTime())) return null;
   const ms = d.getTime() - Date.now();
-  return Math.ceil(ms / 86_400_000);
+  return Math.round(ms / 86_400_000);
 }

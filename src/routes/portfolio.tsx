@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { apiFetch } from "@/lib/api";
 import { AppShell } from "@/components/AppShell";
@@ -33,6 +33,8 @@ interface HeroResponse {
     delta_over_days?: number | null;
     delta_source?: string | null;
     subline?: string | null;
+    provenance?: string | null;
+    value_source?: string | null;
   };
   readiness: { state: "green" | "amber" | "red" | string; flags?: string[]; framing?: string };
   risk: {
@@ -47,6 +49,8 @@ interface HeroResponse {
   };
   race: {
     name: string; date: string; distance?: string;
+    distance_source?: "explicit" | "inferred_from_name" | string | null;
+    needs_goal?: boolean | null;
     goal_time?: string | null; projected_time?: string | null;
     gap_sec?: number | null; on_track?: OnTrack;
     line?: string | null;
@@ -334,6 +338,14 @@ function Hero({ hero }: { hero: HeroResponse["hero"] }) {
       <Caption>{hero.metric}</Caption>
       <p
         className="mt-3 font-display tabular"
+        role="img"
+        aria-label={`${hero.metric}: ${hero.value ?? "no value yet"}${
+          hero.provenance ? `, ${hero.provenance}` : ""
+        }${
+          hero.delta_30d == null
+            ? ", building history"
+            : `, ${hero.delta_30d > 0 ? "up" : hero.delta_30d < 0 ? "down" : "flat"} ${Math.abs(hero.delta_30d)} over ${hero.delta_over_days ?? 30} days`
+        }`}
         style={{
           color: T.text,
           fontSize: "clamp(88px, 26vw, 148px)",
@@ -343,6 +355,11 @@ function Hero({ hero }: { hero: HeroResponse["hero"] }) {
       >
         {display}
       </p>
+      {hero.provenance && (
+        <p className="mt-2 text-[12px]" style={{ color: T.muted }}>
+          {hero.provenance}
+        </p>
+      )}
       <div className="mt-4 flex items-center gap-2 flex-wrap">
         {pill}
         {hero.delta_source === "vo2max_proxy" && (
@@ -354,6 +371,11 @@ function Hero({ hero }: { hero: HeroResponse["hero"] }) {
           {hero.subline}
         </p>
       )}
+      {/^vdot$/i.test(hero.metric) && (
+        <p className="mt-1.5 text-[11px] leading-relaxed" style={{ color: T.muted }}>
+          VDOT — a running-fitness score; higher = faster.
+        </p>
+      )}
     </section>
   );
 }
@@ -363,10 +385,18 @@ function Hero({ hero }: { hero: HeroResponse["hero"] }) {
 function ReadinessStrip({ readiness }: { readiness: HeroResponse["readiness"] }) {
   const map: Record<string, string> = { green: T.green, amber: T.amber, red: T.red };
   const color = map[readiness.state] ?? T.muted;
-  const framing = readiness.framing || "today's conditions";
+  const known = readiness.state in map;
+  const framing = known
+    ? readiness.framing || "today's conditions"
+    : "Readiness building";
+  const token = known
+    ? readiness.state === "green" ? "GO" : readiness.state === "amber" ? "EASE IN" : "RECOVER"
+    : "PENDING";
   return (
     <div className="flex items-center gap-2 pt-1">
       <span
+        role="img"
+        aria-label={`Readiness: ${token.toLowerCase()} — ${framing}`}
         className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.14em]"
         style={{
           color,
@@ -379,7 +409,7 @@ function ReadinessStrip({ readiness }: { readiness: HeroResponse["readiness"] })
           style={{ backgroundColor: color }}
           aria-hidden="true"
         />
-        {framing}
+        {token} · {framing}
       </span>
     </div>
   );
@@ -451,18 +481,43 @@ function RiskGauge({ risk }: { risk: HeroResponse["risk"] }) {
   };
   const marker = colorMap[risk.state] ?? T.muted;
   const noData = risk.state === "no_data" || risk.acwr == null;
+  const stateToken: Record<RiskState, string> = {
+    safe: "SAFE",
+    elevated: "ELEVATED",
+    over_leveraged: "OVER",
+    detraining: "LOW",
+    no_data: "NO DATA",
+  };
+  const token = stateToken[risk.state] ?? "NO DATA";
 
   return (
     <Panel>
       <div className="flex items-baseline justify-between">
         <Caption>Risk exposure · ACWR</Caption>
-        {!noData && (
-          <span className="text-[12px] tabular" style={{ color: T.text }}>
-            {risk.acwr!.toFixed(2)}
+        <span className="flex items-baseline gap-2">
+          <span
+            className="text-[10px] uppercase tracking-[0.14em]"
+            style={{ color: marker }}
+          >
+            {token}
           </span>
-        )}
+          {!noData && (
+            <span className="text-[12px] tabular" style={{ color: T.text }}>
+              {risk.acwr!.toFixed(2)}
+            </span>
+          )}
+        </span>
       </div>
-      <div className="relative mt-4 h-2 rounded-full" style={{ backgroundColor: "#1E2126" }}>
+      <div
+        className="relative mt-4 h-2 rounded-full"
+        style={{ backgroundColor: "#1E2126" }}
+        role="img"
+        aria-label={
+          noData
+            ? "Risk: not enough load history yet"
+            : `Risk: ACWR ${risk.acwr!.toFixed(2)}, ${token.toLowerCase()}, safe zone ${risk.safe_low} to ${risk.safe_high}`
+        }
+      >
         {!noData && (
           <div
             className="absolute inset-y-0 rounded-full"
@@ -501,6 +556,9 @@ function RiskGauge({ risk }: { risk: HeroResponse["risk"] }) {
           Basis · {risk.basis}
         </p>
       )}
+      <p className="mt-2 text-[11px] leading-relaxed" style={{ color: T.muted }}>
+        ACWR — recent training load vs. your usual load.
+      </p>
     </Panel>
   );
 }
@@ -511,26 +569,51 @@ function RaceCard({ race }: { race: NonNullable<HeroResponse["race"]> }) {
   const trackColor: Record<OnTrack, string> = {
     on_track: T.lime, close: T.amber, behind: T.red,
   };
+  const trackWord: Record<OnTrack, string> = {
+    on_track: "on track ✓", close: "within reach", behind: "behind",
+  };
   const color = trackColor[(race.on_track ?? "close") as OnTrack] ?? T.muted;
   const days = daysUntil(race.date);
   const hasProjection = race.projected_time && race.goal_time;
   return (
     <Panel>
       <div className="flex items-baseline justify-between">
-        <Caption>Price target · {race.name}</Caption>
+        <Caption>Race target · {race.name}</Caption>
         {days != null && (
           <span className="text-[11px] tabular" style={{ color: T.muted }}>
             {days >= 0 ? `${days}d` : "past"}
           </span>
         )}
       </div>
+      {race.distance && (
+        <p className="mt-1 text-[11px] uppercase tracking-[0.14em]" style={{ color: T.muted }}>
+          {race.distance}
+        </p>
+      )}
       {hasProjection ? (
         <div className="mt-3">
           <p
             className="font-display tabular"
+            role="img"
+            aria-label={`Race target: projected ${race.projected_time}, goal ${race.goal_time}, ${trackWord[(race.on_track ?? "close") as OnTrack]}`}
             style={{ color, fontSize: 40, lineHeight: 1, letterSpacing: "-0.03em" }}
           >
             {race.projected_time} → {race.goal_time}
+          </p>
+          <p className="mt-1 text-[12px]" style={{ color }}>
+            {trackWord[(race.on_track ?? "close") as OnTrack]}
+          </p>
+          {race.line && (
+            <p className="mt-2 text-[13px]" style={{ color: T.muted }}>{race.line}</p>
+          )}
+        </div>
+      ) : race.projected_time ? (
+        <div className="mt-3">
+          <p
+            className="font-display tabular"
+            style={{ color: T.text, fontSize: 40, lineHeight: 1, letterSpacing: "-0.03em" }}
+          >
+            {race.projected_time}
           </p>
           {race.line && (
             <p className="mt-2 text-[13px]" style={{ color: T.muted }}>{race.line}</p>
@@ -538,10 +621,66 @@ function RaceCard({ race }: { race: NonNullable<HeroResponse["race"]> }) {
         </div>
       ) : (
         <p className="mt-3 text-[14px]" style={{ color: T.muted }}>
-          Set a goal time to see your projection
+          {race.line ?? "Set a goal time to see your projection"}
         </p>
       )}
+      {race.needs_goal === true && <GoalTimeInput />}
     </Panel>
+  );
+}
+
+function GoalTimeInput() {
+  const qc = useQueryClient();
+  const [value, setValue] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const valid = /^(\d{1,2}:)?\d{1,2}:\d{2}$/.test(value.trim());
+
+  async function save() {
+    if (!valid || saving) return;
+    setSaving(true);
+    setErr(null);
+    try {
+      await apiFetch("/api/race/goal", {
+        method: "POST",
+        body: JSON.stringify({ goal_time: value.trim() }),
+      });
+      setValue("");
+      await qc.invalidateQueries({ queryKey: ["hero"] });
+    } catch {
+      setErr("Couldn't save that goal time.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="mt-4 pt-4" style={{ borderTop: `1px solid ${T.border}` }}>
+      <label htmlFor="goal-time" className="text-[11px] uppercase tracking-[0.16em]" style={{ color: T.muted }}>
+        Set a goal time
+      </label>
+      <div className="mt-2 flex items-center gap-2">
+        <input
+          id="goal-time"
+          inputMode="numeric"
+          placeholder="1:25:00"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          className="flex-1 min-h-11 rounded-xl px-3 text-[15px] tabular outline-none"
+          style={{ backgroundColor: "rgba(255,255,255,0.04)", border: `1px solid ${T.border}`, color: T.text }}
+        />
+        <button
+          type="button"
+          onClick={save}
+          disabled={!valid || saving}
+          className="min-h-11 rounded-xl px-4 text-[12px] uppercase tracking-[0.14em] disabled:opacity-40"
+          style={{ backgroundColor: T.lime, color: T.bg }}
+        >
+          {saving ? "Saving…" : "Save"}
+        </button>
+      </div>
+      {err && <p className="mt-2 text-[12px]" style={{ color: T.red }}>{err}</p>}
+    </div>
   );
 }
 

@@ -473,18 +473,43 @@ function RiskGauge({ risk }: { risk: HeroResponse["risk"] }) {
   };
   const marker = colorMap[risk.state] ?? T.muted;
   const noData = risk.state === "no_data" || risk.acwr == null;
+  const stateToken: Record<RiskState, string> = {
+    safe: "SAFE",
+    elevated: "ELEVATED",
+    over_leveraged: "OVER",
+    detraining: "LOW",
+    no_data: "NO DATA",
+  };
+  const token = stateToken[risk.state] ?? "NO DATA";
 
   return (
     <Panel>
       <div className="flex items-baseline justify-between">
         <Caption>Risk exposure · ACWR</Caption>
-        {!noData && (
-          <span className="text-[12px] tabular" style={{ color: T.text }}>
-            {risk.acwr!.toFixed(2)}
+        <span className="flex items-baseline gap-2">
+          <span
+            className="text-[10px] uppercase tracking-[0.14em]"
+            style={{ color: marker }}
+          >
+            {token}
           </span>
-        )}
+          {!noData && (
+            <span className="text-[12px] tabular" style={{ color: T.text }}>
+              {risk.acwr!.toFixed(2)}
+            </span>
+          )}
+        </span>
       </div>
-      <div className="relative mt-4 h-2 rounded-full" style={{ backgroundColor: "#1E2126" }}>
+      <div
+        className="relative mt-4 h-2 rounded-full"
+        style={{ backgroundColor: "#1E2126" }}
+        role="img"
+        aria-label={
+          noData
+            ? "Risk: not enough load history yet"
+            : `Risk: ACWR ${risk.acwr!.toFixed(2)}, ${token.toLowerCase()}, safe zone ${risk.safe_low} to ${risk.safe_high}`
+        }
+      >
         {!noData && (
           <div
             className="absolute inset-y-0 rounded-full"
@@ -523,6 +548,9 @@ function RiskGauge({ risk }: { risk: HeroResponse["risk"] }) {
           Basis · {risk.basis}
         </p>
       )}
+      <p className="mt-2 text-[11px] leading-relaxed" style={{ color: T.muted }}>
+        ACWR — recent training load vs. your usual load.
+      </p>
     </Panel>
   );
 }

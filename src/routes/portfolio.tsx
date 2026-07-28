@@ -338,6 +338,14 @@ function Hero({ hero }: { hero: HeroResponse["hero"] }) {
       <Caption>{hero.metric}</Caption>
       <p
         className="mt-3 font-display tabular"
+        role="img"
+        aria-label={`${hero.metric}: ${hero.value ?? "no value yet"}${
+          hero.provenance ? `, ${hero.provenance}` : ""
+        }${
+          hero.delta_30d == null
+            ? ", building history"
+            : `, ${hero.delta_30d > 0 ? "up" : hero.delta_30d < 0 ? "down" : "flat"} ${Math.abs(hero.delta_30d)} over ${hero.delta_over_days ?? 30} days`
+        }`}
         style={{
           color: T.text,
           fontSize: "clamp(88px, 26vw, 148px)",
@@ -347,6 +355,11 @@ function Hero({ hero }: { hero: HeroResponse["hero"] }) {
       >
         {display}
       </p>
+      {hero.provenance && (
+        <p className="mt-2 text-[12px]" style={{ color: T.muted }}>
+          {hero.provenance}
+        </p>
+      )}
       <div className="mt-4 flex items-center gap-2 flex-wrap">
         {pill}
         {hero.delta_source === "vo2max_proxy" && (
@@ -356,6 +369,11 @@ function Hero({ hero }: { hero: HeroResponse["hero"] }) {
       {hero.subline && (
         <p className="mt-3 text-[13px] leading-relaxed" style={{ color: T.muted }}>
           {hero.subline}
+        </p>
+      )}
+      {/^vdot$/i.test(hero.metric) && (
+        <p className="mt-1.5 text-[11px] leading-relaxed" style={{ color: T.muted }}>
+          VDOT — a running-fitness score; higher = faster.
         </p>
       )}
     </section>

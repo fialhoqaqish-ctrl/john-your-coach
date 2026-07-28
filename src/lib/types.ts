@@ -21,7 +21,8 @@ export interface Dashboard {
   pace_trend?: { period: string; median_pace_sec: number }[] | null;
   rhythm?: {
     headline?: string | null;
-    band?: { low: number; high: number } | null;
+    band?: { low: number; high: number; median?: number | null } | null;
+    returned_weeks?: number | null;
     weeks?: {
       week: string;
       volume: number;

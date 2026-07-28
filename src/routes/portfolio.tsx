@@ -385,10 +385,18 @@ function Hero({ hero }: { hero: HeroResponse["hero"] }) {
 function ReadinessStrip({ readiness }: { readiness: HeroResponse["readiness"] }) {
   const map: Record<string, string> = { green: T.green, amber: T.amber, red: T.red };
   const color = map[readiness.state] ?? T.muted;
-  const framing = readiness.framing || "today's conditions";
+  const known = readiness.state in map;
+  const framing = known
+    ? readiness.framing || "today's conditions"
+    : "Readiness building";
+  const token = known
+    ? readiness.state === "green" ? "GO" : readiness.state === "amber" ? "EASE IN" : "RECOVER"
+    : "PENDING";
   return (
     <div className="flex items-center gap-2 pt-1">
       <span
+        role="img"
+        aria-label={`Readiness: ${token.toLowerCase()} — ${framing}`}
         className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.14em]"
         style={{
           color,
@@ -401,7 +409,7 @@ function ReadinessStrip({ readiness }: { readiness: HeroResponse["readiness"] })
           style={{ backgroundColor: color }}
           aria-hidden="true"
         />
-        {framing}
+        {token} · {framing}
       </span>
     </div>
   );

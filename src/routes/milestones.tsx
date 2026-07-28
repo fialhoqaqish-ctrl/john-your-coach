@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { Card, SectionLabel, EmptyLine, Verdict } from "@/components/ui-bits";
+import { RhythmCard } from "@/components/RhythmCard";
 import { useDashboard } from "@/lib/useDashboard";
 import { daysUntil, fmtShortDate } from "@/lib/format";
 import { Flag, Star, Target } from "lucide-react";
@@ -41,6 +42,7 @@ function MilestonesPage() {
 
         {data?.next_race && <RaceHero name={data.next_race.name} date={data.next_race.date} />}
         {data?.north_star && <NorthStar ns={data.north_star} />}
+        {data?.rhythm && <RhythmCard rhythm={data.rhythm} />}
 
         {items.length > 0 && (
           <section className="pt-2">

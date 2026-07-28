@@ -561,26 +561,51 @@ function RaceCard({ race }: { race: NonNullable<HeroResponse["race"]> }) {
   const trackColor: Record<OnTrack, string> = {
     on_track: T.lime, close: T.amber, behind: T.red,
   };
+  const trackWord: Record<OnTrack, string> = {
+    on_track: "on track ✓", close: "within reach", behind: "behind",
+  };
   const color = trackColor[(race.on_track ?? "close") as OnTrack] ?? T.muted;
   const days = daysUntil(race.date);
   const hasProjection = race.projected_time && race.goal_time;
   return (
     <Panel>
       <div className="flex items-baseline justify-between">
-        <Caption>Price target · {race.name}</Caption>
+        <Caption>Race target · {race.name}</Caption>
         {days != null && (
           <span className="text-[11px] tabular" style={{ color: T.muted }}>
             {days >= 0 ? `${days}d` : "past"}
           </span>
         )}
       </div>
+      {race.distance && (
+        <p className="mt-1 text-[11px] uppercase tracking-[0.14em]" style={{ color: T.muted }}>
+          {race.distance}
+        </p>
+      )}
       {hasProjection ? (
         <div className="mt-3">
           <p
             className="font-display tabular"
+            role="img"
+            aria-label={`Race target: projected ${race.projected_time}, goal ${race.goal_time}, ${trackWord[(race.on_track ?? "close") as OnTrack]}`}
             style={{ color, fontSize: 40, lineHeight: 1, letterSpacing: "-0.03em" }}
           >
             {race.projected_time} → {race.goal_time}
+          </p>
+          <p className="mt-1 text-[12px]" style={{ color }}>
+            {trackWord[(race.on_track ?? "close") as OnTrack]}
+          </p>
+          {race.line && (
+            <p className="mt-2 text-[13px]" style={{ color: T.muted }}>{race.line}</p>
+          )}
+        </div>
+      ) : race.projected_time ? (
+        <div className="mt-3">
+          <p
+            className="font-display tabular"
+            style={{ color: T.text, fontSize: 40, lineHeight: 1, letterSpacing: "-0.03em" }}
+          >
+            {race.projected_time}
           </p>
           {race.line && (
             <p className="mt-2 text-[13px]" style={{ color: T.muted }}>{race.line}</p>
@@ -588,10 +613,66 @@ function RaceCard({ race }: { race: NonNullable<HeroResponse["race"]> }) {
         </div>
       ) : (
         <p className="mt-3 text-[14px]" style={{ color: T.muted }}>
-          Set a goal time to see your projection
+          {race.line ?? "Set a goal time to see your projection"}
         </p>
       )}
+      {race.needs_goal === true && <GoalTimeInput />}
     </Panel>
+  );
+}
+
+function GoalTimeInput() {
+  const qc = useQueryClient();
+  const [value, setValue] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const valid = /^(\d{1,2}:)?\d{1,2}:\d{2}$/.test(value.trim());
+
+  async function save() {
+    if (!valid || saving) return;
+    setSaving(true);
+    setErr(null);
+    try {
+      await apiFetch("/api/race/goal", {
+        method: "POST",
+        body: JSON.stringify({ goal_time: value.trim() }),
+      });
+      setValue("");
+      await qc.invalidateQueries({ queryKey: ["hero"] });
+    } catch {
+      setErr("Couldn't save that goal time.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="mt-4 pt-4" style={{ borderTop: `1px solid ${T.border}` }}>
+      <label htmlFor="goal-time" className="text-[11px] uppercase tracking-[0.16em]" style={{ color: T.muted }}>
+        Set a goal time
+      </label>
+      <div className="mt-2 flex items-center gap-2">
+        <input
+          id="goal-time"
+          inputMode="numeric"
+          placeholder="1:25:00"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          className="flex-1 min-h-11 rounded-xl px-3 text-[15px] tabular outline-none"
+          style={{ backgroundColor: "rgba(255,255,255,0.04)", border: `1px solid ${T.border}`, color: T.text }}
+        />
+        <button
+          type="button"
+          onClick={save}
+          disabled={!valid || saving}
+          className="min-h-11 rounded-xl px-4 text-[12px] uppercase tracking-[0.14em] disabled:opacity-40"
+          style={{ backgroundColor: T.lime, color: T.bg }}
+        >
+          {saving ? "Saving…" : "Save"}
+        </button>
+      </div>
+      {err && <p className="mt-2 text-[12px]" style={{ color: T.red }}>{err}</p>}
+    </div>
   );
 }
 

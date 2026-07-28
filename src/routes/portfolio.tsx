@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { apiFetch } from "@/lib/api";
 import { AppShell } from "@/components/AppShell";
@@ -33,6 +33,8 @@ interface HeroResponse {
     delta_over_days?: number | null;
     delta_source?: string | null;
     subline?: string | null;
+    provenance?: string | null;
+    value_source?: string | null;
   };
   readiness: { state: "green" | "amber" | "red" | string; flags?: string[]; framing?: string };
   risk: {
@@ -47,6 +49,8 @@ interface HeroResponse {
   };
   race: {
     name: string; date: string; distance?: string;
+    distance_source?: "explicit" | "inferred_from_name" | string | null;
+    needs_goal?: boolean | null;
     goal_time?: string | null; projected_time?: string | null;
     gap_sec?: number | null; on_track?: OnTrack;
     line?: string | null;

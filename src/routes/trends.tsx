@@ -68,7 +68,12 @@ function FitnessHero({ d }: { d: Dashboard }) {
   return (
     <section className="pt-2">
       <SectionLabel>Fitness verdict</SectionLabel>
-      <p className="font-display text-[76px] leading-[0.9] mt-3" style={{ color }}>
+      <p
+        className="font-display text-[76px] leading-[0.9] mt-3"
+        style={{ color }}
+        role="img"
+        aria-label={`Fitness verdict: ${word.toLowerCase()}. ${d.fitness_verdict?.subline ?? ""}`}
+      >
         {word}
       </p>
       <Verdict>

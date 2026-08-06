@@ -26,13 +26,19 @@ import {
 const axis = { fill: "var(--color-muted-foreground)", fontSize: 10 } as const;
 
 function Box({ children }: { children: React.ReactNode }) {
-  return <div className="rounded-lg border border-border bg-card px-3 py-2 shadow-lg">{children}</div>;
+  return (
+    <div className="rounded-lg border border-border bg-card px-3 py-2 shadow-lg">{children}</div>
+  );
 }
 
 export function PaceTrend({ d, units }: { d: AnalyticsResponse; units: Units }) {
   const rows = (d.pace_trend ?? []).map((p) => ({ ...p, y: pace(p.pace_sec, units) ?? 0 }));
   return (
-    <Panel title="Pace trend" info="Run pace over time. Higher on the chart is faster." sources={["STRAVA"]}>
+    <Panel
+      title="Pace trend"
+      info="Run pace over time. Higher on the chart is faster."
+      sources={["STRAVA"]}
+    >
       {rows.length < 2 ? (
         <EmptyState>No runs with pace in this window.</EmptyState>
       ) : (
@@ -60,7 +66,13 @@ export function PaceTrend({ d, units }: { d: AnalyticsResponse; units: Units }) 
               />
               <Scatter data={rows} fill="var(--color-primary)" />
               <Tooltip
-                content={({ active, payload }: { active?: boolean; payload?: { payload?: Record<string, unknown> }[] }) => {
+                content={({
+                  active,
+                  payload,
+                }: {
+                  active?: boolean;
+                  payload?: { payload?: Record<string, unknown> }[];
+                }) => {
                   const row = payload?.[0]?.payload;
                   if (!active || !row) return null;
                   return (
@@ -119,7 +131,13 @@ export function AerobicEfficiency({ d, units }: { d: AnalyticsResponse; units: U
               />
               <Scatter data={rows} fill="var(--color-success)" />
               <Tooltip
-                content={({ active, payload }: { active?: boolean; payload?: { payload?: Record<string, unknown> }[] }) => {
+                content={({
+                  active,
+                  payload,
+                }: {
+                  active?: boolean;
+                  payload?: { payload?: Record<string, unknown> }[];
+                }) => {
                   const row = payload?.[0]?.payload;
                   if (!active || !row) return null;
                   return (
@@ -151,7 +169,14 @@ export function ZoneDistribution({ d }: { d: AnalyticsResponse }) {
       title="Zone distribution"
       info="Share of training time spent in each intensity zone."
       sources={["STRAVA"]}
-      right={<Segmented label="Zone source" options={["HR", "Power"] as const} value={source} onChange={setSource} />}
+      right={
+        <Segmented
+          label="Zone source"
+          options={["HR", "Power"] as const}
+          value={source}
+          onChange={setSource}
+        />
+      }
     >
       {bins.length === 0 ? (
         <EmptyState>
@@ -170,14 +195,20 @@ export function ZoneDistribution({ d }: { d: AnalyticsResponse }) {
                 <span className="tabular text-muted-foreground">{Math.round(b.pct)}%</span>
               </div>
               <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-border">
-                <div className="h-full bg-primary" style={{ width: `${Math.min(100, b.pct)}%` }} aria-hidden="true" />
+                <div
+                  className="h-full bg-primary"
+                  style={{ width: `${Math.min(100, b.pct)}%` }}
+                  aria-hidden="true"
+                />
               </div>
             </li>
           ))}
         </ul>
       )}
       {lthr != null && (
-        <p className="mt-3 text-[11px] text-muted-foreground">LTHR {Math.round(lthr)} (from profile)</p>
+        <p className="mt-3 text-[11px] text-muted-foreground">
+          LTHR {Math.round(lthr)} (from profile)
+        </p>
       )}
     </Panel>
   );
@@ -191,11 +222,19 @@ export function PowerProfile({ d }: { d: AnalyticsResponse }) {
       title="Power profile"
       info="Your best sustained cycling power across durations."
       sources={["STRAVA"]}
-      right={<Segmented label="Power window" options={["6w", "90d", "1y", "All"] as const} value={win} onChange={setWin} />}
+      right={
+        <Segmented
+          label="Power window"
+          options={["6w", "90d", "1y", "All"] as const}
+          value={win}
+          onChange={setWin}
+        />
+      }
     >
       {rows.length === 0 ? (
         <EmptyState>
-          No cycling power data in this window. Try a longer window, or connect a power-equipped device.
+          No cycling power data in this window. Try a longer window, or connect a power-equipped
+          device.
         </EmptyState>
       ) : (
         <div className="mt-4 h-44">
@@ -210,16 +249,29 @@ export function PowerProfile({ d }: { d: AnalyticsResponse }) {
                 tickFormatter={(v: number) => (v >= 60 ? `${Math.round(v / 60)}m` : `${v}s`)}
               />
               <YAxis tick={axis} axisLine={false} tickLine={false} width={34} />
-              <Line type="monotone" dataKey="watts" dot={false} strokeWidth={2.5} stroke="var(--color-primary)" />
+              <Line
+                type="monotone"
+                dataKey="watts"
+                dot={false}
+                strokeWidth={2.5}
+                stroke="var(--color-primary)"
+              />
               <Tooltip
-                content={({ active, payload }: { active?: boolean; payload?: { payload?: Record<string, unknown> }[] }) => {
+                content={({
+                  active,
+                  payload,
+                }: {
+                  active?: boolean;
+                  payload?: { payload?: Record<string, unknown> }[];
+                }) => {
                   const row = payload?.[0]?.payload;
                   if (!active || !row) return null;
                   const s = row.duration_sec as number;
                   return (
                     <Box>
                       <p className="text-xs tabular text-foreground">
-                        {s >= 60 ? `${Math.round(s / 60)} min` : `${s} s`} · {fmtInt(row.watts as number)} W
+                        {s >= 60 ? `${Math.round(s / 60)} min` : `${s} s`} ·{" "}
+                        {fmtInt(row.watts as number)} W
                       </p>
                     </Box>
                   );
@@ -254,7 +306,11 @@ export function StrengthProgression({ d, units }: { d: AnalyticsResponse; units:
   const bestE1rm = rows.reduce<number>((a, r) => Math.max(a, r.e1rm), 0);
   const u = massLabel(units);
   return (
-    <Panel title="Strength progression" info="Top set and estimated one-rep max per session." sources={["STRAVA", "GARMIN"]}>
+    <Panel
+      title="Strength progression"
+      info="Top set and estimated one-rep max per session."
+      sources={["STRAVA", "GARMIN"]}
+    >
       {exercises.length === 0 ? (
         <EmptyState>No strength sets logged in this window.</EmptyState>
       ) : (
@@ -267,7 +323,9 @@ export function StrengthProgression({ d, units }: { d: AnalyticsResponse; units:
                 aria-pressed={ex === active}
                 onClick={() => setExercise(ex)}
                 className={`min-h-[32px] rounded-full border px-2.5 text-[11px] ${
-                  ex === active ? "border-primary/60 text-foreground" : "border-border text-muted-foreground"
+                  ex === active
+                    ? "border-primary/60 text-foreground"
+                    : "border-border text-muted-foreground"
                 }`}
               >
                 {ex}
@@ -284,7 +342,11 @@ export function StrengthProgression({ d, units }: { d: AnalyticsResponse; units:
             <div className="mt-4 h-40">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={rows} margin={{ top: 6, right: 6, bottom: 4, left: -22 }}>
-                  <CartesianGrid stroke="var(--color-border)" strokeOpacity={0.5} vertical={false} />
+                  <CartesianGrid
+                    stroke="var(--color-border)"
+                    strokeOpacity={0.5}
+                    vertical={false}
+                  />
                   <XAxis
                     dataKey="date"
                     tick={axis}
@@ -297,12 +359,20 @@ export function StrengthProgression({ d, units }: { d: AnalyticsResponse; units:
                   <Bar dataKey="top" fill="var(--color-primary)" radius={[3, 3, 0, 0]} />
                   <Tooltip
                     cursor={{ fill: "var(--color-muted-foreground)", fillOpacity: 0.08 }}
-                    content={({ active: a, payload }: { active?: boolean; payload?: { payload?: Record<string, unknown> }[] }) => {
+                    content={({
+                      active: a,
+                      payload,
+                    }: {
+                      active?: boolean;
+                      payload?: { payload?: Record<string, unknown> }[];
+                    }) => {
                       const row = payload?.[0]?.payload;
                       if (!a || !row) return null;
                       return (
                         <Box>
-                          <p className="text-[11px] tabular text-muted-foreground">{fmtShortDate(row.date as string)}</p>
+                          <p className="text-[11px] tabular text-muted-foreground">
+                            {fmtShortDate(row.date as string)}
+                          </p>
                           <p className="text-xs tabular text-foreground">
                             {(row.top as number).toFixed(1)}
                             {u} × {fmtInt(row.reps as number)} reps

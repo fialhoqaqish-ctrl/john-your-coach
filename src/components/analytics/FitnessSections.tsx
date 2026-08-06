@@ -133,12 +133,46 @@ export function PmcChart({ d, units }: { d: AnalyticsResponse; units: Units }) {
                 />
               )}
               <ReferenceLine yAxisId="load" y={0} stroke="var(--color-border)" />
-              <Bar yAxisId="load" dataKey="load" fill="var(--color-muted-foreground)" fillOpacity={0.25} />
-              <Line yAxisId="load" type="monotone" dataKey="ctl" dot={false} strokeWidth={2.5} stroke="var(--color-primary)" />
-              <Line yAxisId="load" type="monotone" dataKey="atl" dot={false} strokeWidth={1.75} stroke="var(--color-warning)" />
-              <Line yAxisId="load" type="monotone" dataKey="tsb" dot={false} strokeWidth={1.5} strokeDasharray="4 3" stroke="var(--color-foreground)" />
+              <Bar
+                yAxisId="load"
+                dataKey="load"
+                fill="var(--color-muted-foreground)"
+                fillOpacity={0.25}
+              />
+              <Line
+                yAxisId="load"
+                type="monotone"
+                dataKey="ctl"
+                dot={false}
+                strokeWidth={2.5}
+                stroke="var(--color-primary)"
+              />
+              <Line
+                yAxisId="load"
+                type="monotone"
+                dataKey="atl"
+                dot={false}
+                strokeWidth={1.75}
+                stroke="var(--color-warning)"
+              />
+              <Line
+                yAxisId="load"
+                type="monotone"
+                dataKey="tsb"
+                dot={false}
+                strokeWidth={1.5}
+                strokeDasharray="4 3"
+                stroke="var(--color-foreground)"
+              />
               {showPace && (
-                <Line yAxisId="pace" type="monotone" dataKey="pace_disp" dot={false} strokeWidth={1.5} stroke="var(--color-success)" />
+                <Line
+                  yAxisId="pace"
+                  type="monotone"
+                  dataKey="pace_disp"
+                  dot={false}
+                  strokeWidth={1.5}
+                  stroke="var(--color-success)"
+                />
               )}
               <Tooltip content={<PmcTooltip units={units} />} />
             </ComposedChart>
@@ -161,7 +195,11 @@ function Legend({ items }: { items: [string, string][] }) {
     <ul className="mt-3 flex flex-wrap gap-3">
       {items.map(([label, color]) => (
         <li key={label} className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-          <span className="h-0.5 w-4 rounded-full" style={{ background: color }} aria-hidden="true" />
+          <span
+            className="h-0.5 w-4 rounded-full"
+            style={{ background: color }}
+            aria-hidden="true"
+          />
           {label}
         </li>
       ))}
@@ -169,7 +207,12 @@ function Legend({ items }: { items: [string, string][] }) {
   );
 }
 
-function PmcTooltip({ units, active, payload, label }: {
+function PmcTooltip({
+  units,
+  active,
+  payload,
+  label,
+}: {
   units: Units;
   active?: boolean;
   payload?: { dataKey?: string | number; value?: number }[];
@@ -258,7 +301,8 @@ export function ThresholdsEditor({
               const out: Thresholds = {};
               for (const f of THRESHOLD_FIELDS) {
                 const raw = draft[f.key as string];
-                if (raw != null && raw !== "") (out as Record<string, number>)[f.key as string] = Number(raw);
+                if (raw != null && raw !== "")
+                  (out as Record<string, number>)[f.key as string] = Number(raw);
               }
               onSave(out);
             }}
@@ -282,7 +326,11 @@ export function ConsistencyHeatmap({ d }: { d: AnalyticsResponse }) {
   const weeks = useMemo(() => groupWeeks(days), [days]);
   const max = Math.max(1, ...days.map((x) => x.load ?? 0));
   return (
-    <Panel title="Consistency" info="Daily training load. Darker means a bigger day." sources={["STRAVA"]}>
+    <Panel
+      title="Consistency"
+      info="Daily training load. Darker means a bigger day."
+      sources={["STRAVA"]}
+    >
       {days.length === 0 ? (
         <EmptyState>No activity days in this window.</EmptyState>
       ) : (
@@ -355,21 +403,32 @@ export function TrainingVolume({
     for (const e of entries) {
       if (hidden.includes(e.sport)) continue;
       const row = byWeek.get(e.week) ?? { week: 0 as unknown as number };
-      const v =
-        metric === "Time" ? (e.hours ?? 0) : (dist(e.distance_km ?? 0, units) ?? 0);
+      const v = metric === "Time" ? (e.hours ?? 0) : (dist(e.distance_km ?? 0, units) ?? 0);
       row[e.sport] = (row[e.sport] ?? 0) + v;
       byWeek.set(e.week, row);
     }
     return Array.from(byWeek.entries()).map(([week, v]) => ({ week, ...v }));
   }, [entries, hidden, metric, units]);
-  const palette = ["var(--color-primary)", "var(--color-warning)", "var(--color-success)", "var(--color-muted-foreground)"];
+  const palette = [
+    "var(--color-primary)",
+    "var(--color-warning)",
+    "var(--color-success)",
+    "var(--color-muted-foreground)",
+  ];
   const suffix = metric === "Time" ? "h" : distLabel(units);
   return (
     <Panel
       title={title}
       info="Weekly training volume broken down by sport."
       sources={["STRAVA"]}
-      right={<Segmented label="Volume metric" options={["Time", "Distance"] as const} value={metric} onChange={setMetric} />}
+      right={
+        <Segmented
+          label="Volume metric"
+          options={["Time", "Distance"] as const}
+          value={metric}
+          onChange={setMetric}
+        />
+      }
     >
       <div className="mt-3 flex flex-wrap gap-1.5">
         {sports.map((s) => {
@@ -404,15 +463,30 @@ export function TrainingVolume({
                 tickFormatter={(v: string) => fmtShortDate(v)}
                 tick={{ fill: "var(--color-muted-foreground)", fontSize: 10 }}
               />
-              <YAxis tick={{ fill: "var(--color-muted-foreground)", fontSize: 10 }} axisLine={false} tickLine={false} width={34} />
+              <YAxis
+                tick={{ fill: "var(--color-muted-foreground)", fontSize: 10 }}
+                axisLine={false}
+                tickLine={false}
+                width={34}
+              />
               {sports
                 .filter((s) => !hidden.includes(s))
                 .map((s, i) => (
-                  <Bar key={s} dataKey={s} stackId="v" fill={palette[i % palette.length]} radius={[3, 3, 0, 0]} />
+                  <Bar
+                    key={s}
+                    dataKey={s}
+                    stackId="v"
+                    fill={palette[i % palette.length]}
+                    radius={[3, 3, 0, 0]}
+                  />
                 ))}
               <Tooltip
                 cursor={{ fill: "var(--color-muted-foreground)", fillOpacity: 0.08 }}
-                content={({ active, payload, label }: {
+                content={({
+                  active,
+                  payload,
+                  label,
+                }: {
                   active?: boolean;
                   payload?: { dataKey?: string | number; value?: number }[];
                   label?: string | number;
@@ -421,13 +495,19 @@ export function TrainingVolume({
                   const total = payload.reduce((a, p) => a + (p.value ?? 0), 0);
                   return (
                     <div className="rounded-lg border border-border bg-card px-3 py-2 shadow-lg">
-                      <p className="text-[11px] text-muted-foreground tabular">{fmtShortDate(String(label))}</p>
+                      <p className="text-[11px] text-muted-foreground tabular">
+                        {fmtShortDate(String(label))}
+                      </p>
                       {payload.map((p) => (
                         <p key={String(p.dataKey)} className="text-xs tabular text-foreground">
-                          {String(p.dataKey)}: {(p.value ?? 0).toFixed(1)}{suffix}
+                          {String(p.dataKey)}: {(p.value ?? 0).toFixed(1)}
+                          {suffix}
                         </p>
                       ))}
-                      <p className="mt-1 text-xs tabular text-primary">Total {total.toFixed(1)}{suffix}</p>
+                      <p className="mt-1 text-xs tabular text-primary">
+                        Total {total.toFixed(1)}
+                        {suffix}
+                      </p>
                     </div>
                   );
                 }}

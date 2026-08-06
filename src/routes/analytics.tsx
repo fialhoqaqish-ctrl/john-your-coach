@@ -3,7 +3,12 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { RefreshCw } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { EmptyLine } from "@/components/ui-bits";
-import { HeroStats, ReadinessCard, LoadBalanceCard, ZonesCard } from "@/components/analytics/TopCards";
+import {
+  HeroStats,
+  ReadinessCard,
+  LoadBalanceCard,
+  ZonesCard,
+} from "@/components/analytics/TopCards";
 import {
   ConsistencyHeatmap,
   PmcChart,
@@ -50,7 +55,8 @@ export const Route = createFileRoute("/analytics")({
       { property: "og:title", content: "Analytics — John" },
       {
         property: "og:description",
-        content: "Fitness, fatigue and form, load balance, zones, performance and recovery in one view.",
+        content:
+          "Fitness, fatigue and form, load balance, zones, performance and recovery in one view.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

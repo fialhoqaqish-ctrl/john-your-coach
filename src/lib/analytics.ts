@@ -58,7 +58,9 @@ export interface AnalyticsResponse {
   zones?: {
     status_line?: string | null;
     lthr?: number | null;
-    zones?: { zone: string; label?: string | null; min?: number | null; max?: number | null }[] | null;
+    zones?:
+      | { zone: string; label?: string | null; min?: number | null; max?: number | null }[]
+      | null;
   } | null;
   week_compare?: {
     sessions?: Compare | null;
@@ -66,17 +68,21 @@ export interface AnalyticsResponse {
     distance_km?: Compare | null;
     avg_pace_sec?: Compare | null;
   } | null;
-  pmc?: {
-    date: string;
-    ctl?: number | null;
-    atl?: number | null;
-    tsb?: number | null;
-    load?: number | null;
-    threshold_pace_sec?: number | null;
-  }[] | null;
+  pmc?:
+    | {
+        date: string;
+        ctl?: number | null;
+        atl?: number | null;
+        tsb?: number | null;
+        load?: number | null;
+        threshold_pace_sec?: number | null;
+      }[]
+    | null;
   thresholds?: Thresholds | null;
   heatmap?: { date: string; load?: number | null; sessions?: number | null }[] | null;
-  volume?: { week: string; sport: string; hours?: number | null; distance_km?: number | null }[] | null;
+  volume?:
+    | { week: string; sport: string; hours?: number | null; distance_km?: number | null }[]
+    | null;
   pace_trend?: { date: string; name?: string | null; pace_sec: number }[] | null;
   efficiency?: { date: string; name?: string | null; avg_hr: number; pace_sec: number }[] | null;
   zone_distribution?: {
@@ -86,15 +92,24 @@ export interface AnalyticsResponse {
   power_profile?: { duration_sec: number; watts: number }[] | null;
   strength?: {
     exercises?: string[] | null;
-    sessions?: {
-      date: string;
-      exercise: string;
-      top_weight_kg?: number | null;
-      reps?: number | null;
-      e1rm_kg?: number | null;
-    }[] | null;
+    sessions?:
+      | {
+          date: string;
+          exercise: string;
+          top_weight_kg?: number | null;
+          reps?: number | null;
+          e1rm_kg?: number | null;
+        }[]
+      | null;
   } | null;
-  wellness?: { date: string; hrv?: number | null; sleep_hours?: number | null; readiness?: number | null }[] | null;
+  wellness?:
+    | {
+        date: string;
+        hrv?: number | null;
+        sleep_hours?: number | null;
+        readiness?: number | null;
+      }[]
+    | null;
   garmin_recovery?: { date: string; body_battery?: number | null }[] | null;
   weight_trend?: { date: string; weight_kg: number }[] | null;
   nutrition?: { date: string; kcal?: number | null; protein_g?: number | null }[] | null;
@@ -102,21 +117,25 @@ export interface AnalyticsResponse {
     avg_total?: number | null;
     avg_bmr?: number | null;
     avg_active?: number | null;
-    days?: { date: string; total?: number | null; bmr?: number | null; active?: number | null }[] | null;
+    days?:
+      | { date: string; total?: number | null; bmr?: number | null; active?: number | null }[]
+      | null;
   } | null;
-  activities?: {
-    id: string;
-    sport?: string | null;
-    name?: string | null;
-    date: string;
-    duration_min?: number | null;
-    distance_km?: number | null;
-    pace_sec?: number | null;
-    avg_hr?: number | null;
-    np_watts?: number | null;
-    source?: string | null;
-    duplicate_of?: string | null;
-  }[] | null;
+  activities?:
+    | {
+        id: string;
+        sport?: string | null;
+        name?: string | null;
+        date: string;
+        duration_min?: number | null;
+        distance_km?: number | null;
+        pace_sec?: number | null;
+        avg_hr?: number | null;
+        np_watts?: number | null;
+        source?: string | null;
+        duplicate_of?: string | null;
+      }[]
+    | null;
 }
 
 export interface Compare {

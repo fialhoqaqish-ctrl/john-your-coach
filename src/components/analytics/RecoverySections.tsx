@@ -18,7 +18,9 @@ import { mass, massLabel, type AnalyticsResponse, type Units } from "@/lib/analy
 const axis = { fill: "var(--color-muted-foreground)", fontSize: 10 } as const;
 
 function Box({ children }: { children: React.ReactNode }) {
-  return <div className="rounded-lg border border-border bg-card px-3 py-2 shadow-lg">{children}</div>;
+  return (
+    <div className="rounded-lg border border-border bg-card px-3 py-2 shadow-lg">{children}</div>
+  );
 }
 
 const SERIES = [
@@ -31,7 +33,11 @@ export function WellnessTrends({ d }: { d: AnalyticsResponse }) {
   const rows = d.wellness ?? [];
   const [off, setOff] = useState<string[]>([]);
   return (
-    <Panel title="Wellness trends" info="HRV, sleep and readiness over the selected range." sources={["GARMIN"]}>
+    <Panel
+      title="Wellness trends"
+      info="HRV, sleep and readiness over the selected range."
+      sources={["GARMIN"]}
+    >
       {rows.length < 2 ? (
         <EmptyState>Wellness trends unlock when your Garmin syncs.</EmptyState>
       ) : (
@@ -44,9 +50,13 @@ export function WellnessTrends({ d }: { d: AnalyticsResponse }) {
                   key={s.key}
                   type="button"
                   aria-pressed={!hidden}
-                  onClick={() => setOff((p) => (hidden ? p.filter((x) => x !== s.key) : [...p, s.key]))}
+                  onClick={() =>
+                    setOff((p) => (hidden ? p.filter((x) => x !== s.key) : [...p, s.key]))
+                  }
                   className={`min-h-[32px] rounded-full border px-2.5 text-[11px] ${
-                    hidden ? "border-border text-muted-foreground/60" : "border-primary/60 text-foreground"
+                    hidden
+                      ? "border-border text-muted-foreground/60"
+                      : "border-primary/60 text-foreground"
                   }`}
                 >
                   {s.label}
@@ -67,7 +77,14 @@ export function WellnessTrends({ d }: { d: AnalyticsResponse }) {
                   tickFormatter={(v: string) => fmtShortDate(v)}
                 />
                 <YAxis yAxisId="l" tick={axis} axisLine={false} tickLine={false} width={34} />
-                <YAxis yAxisId="r" orientation="right" tick={axis} axisLine={false} tickLine={false} width={28} />
+                <YAxis
+                  yAxisId="r"
+                  orientation="right"
+                  tick={axis}
+                  axisLine={false}
+                  tickLine={false}
+                  width={28}
+                />
                 {SERIES.filter((s) => !off.includes(s.key)).map((s) => (
                   <Line
                     key={s.key}
@@ -81,7 +98,11 @@ export function WellnessTrends({ d }: { d: AnalyticsResponse }) {
                   />
                 ))}
                 <Tooltip
-                  content={({ active, payload, label }: {
+                  content={({
+                    active,
+                    payload,
+                    label,
+                  }: {
                     active?: boolean;
                     payload?: { dataKey?: string | number; value?: number }[];
                     label?: string | number;
@@ -89,7 +110,9 @@ export function WellnessTrends({ d }: { d: AnalyticsResponse }) {
                     if (!active || !payload?.length) return null;
                     return (
                       <Box>
-                        <p className="text-[11px] tabular text-muted-foreground">{fmtShortDate(String(label))}</p>
+                        <p className="text-[11px] tabular text-muted-foreground">
+                          {fmtShortDate(String(label))}
+                        </p>
                         {payload.map((p) => (
                           <p key={String(p.dataKey)} className="text-xs tabular text-foreground">
                             {SERIES.find((s) => s.key === p.dataKey)?.label ?? String(p.dataKey)}:{" "}
@@ -112,7 +135,11 @@ export function WellnessTrends({ d }: { d: AnalyticsResponse }) {
 export function GarminRecovery({ d }: { d: AnalyticsResponse }) {
   const rows = d.garmin_recovery ?? [];
   return (
-    <Panel title="Garmin recovery" info="Body battery / recovery score reported by your watch." sources={["GARMIN"]}>
+    <Panel
+      title="Garmin recovery"
+      info="Body battery / recovery score reported by your watch."
+      sources={["GARMIN"]}
+    >
       {rows.length < 2 ? (
         <EmptyState>Recovery unlocks when your Garmin syncs.</EmptyState>
       ) : (
@@ -129,14 +156,33 @@ export function GarminRecovery({ d }: { d: AnalyticsResponse }) {
                 tickFormatter={(v: string) => fmtShortDate(v)}
               />
               <YAxis domain={[0, 100]} tick={axis} axisLine={false} tickLine={false} width={30} />
-              <Line type="monotone" dataKey="body_battery" dot={false} strokeWidth={2.5} stroke="var(--color-primary)" connectNulls />
+              <Line
+                type="monotone"
+                dataKey="body_battery"
+                dot={false}
+                strokeWidth={2.5}
+                stroke="var(--color-primary)"
+                connectNulls
+              />
               <Tooltip
-                content={({ active, payload, label }: { active?: boolean; payload?: { value?: number }[]; label?: string | number }) => {
+                content={({
+                  active,
+                  payload,
+                  label,
+                }: {
+                  active?: boolean;
+                  payload?: { value?: number }[];
+                  label?: string | number;
+                }) => {
                   if (!active || !payload?.length) return null;
                   return (
                     <Box>
-                      <p className="text-[11px] tabular text-muted-foreground">{fmtShortDate(String(label))}</p>
-                      <p className="text-xs tabular text-foreground">Body battery {payload[0].value}</p>
+                      <p className="text-[11px] tabular text-muted-foreground">
+                        {fmtShortDate(String(label))}
+                      </p>
+                      <p className="text-xs tabular text-foreground">
+                        Body battery {payload[0].value}
+                      </p>
                     </Box>
                   );
                 }}
@@ -156,7 +202,8 @@ export function WeightTrend({ d, units }: { d: AnalyticsResponse; units: Units }
     <Panel title="Weight trend" info="Scale readings over the selected range." sources={["GARMIN"]}>
       {rows.length < 3 ? (
         <EmptyState>
-          Not enough weigh-ins yet — connect a smart scale. Readings build the trend from here forward.
+          Not enough weigh-ins yet — connect a smart scale. Readings build the trend from here
+          forward.
         </EmptyState>
       ) : (
         <div className="mt-4 h-40">
@@ -171,14 +218,36 @@ export function WeightTrend({ d, units }: { d: AnalyticsResponse; units: Units }
                 minTickGap={36}
                 tickFormatter={(v: string) => fmtShortDate(v)}
               />
-              <YAxis domain={["dataMin - 1", "dataMax + 1"]} tick={axis} axisLine={false} tickLine={false} width={40} />
-              <Line type="monotone" dataKey="w" dot={false} strokeWidth={2.5} stroke="var(--color-primary)" />
+              <YAxis
+                domain={["dataMin - 1", "dataMax + 1"]}
+                tick={axis}
+                axisLine={false}
+                tickLine={false}
+                width={40}
+              />
+              <Line
+                type="monotone"
+                dataKey="w"
+                dot={false}
+                strokeWidth={2.5}
+                stroke="var(--color-primary)"
+              />
               <Tooltip
-                content={({ active, payload, label }: { active?: boolean; payload?: { value?: number }[]; label?: string | number }) => {
+                content={({
+                  active,
+                  payload,
+                  label,
+                }: {
+                  active?: boolean;
+                  payload?: { value?: number }[];
+                  label?: string | number;
+                }) => {
                   if (!active || !payload?.length) return null;
                   return (
                     <Box>
-                      <p className="text-[11px] tabular text-muted-foreground">{fmtShortDate(String(label))}</p>
+                      <p className="text-[11px] tabular text-muted-foreground">
+                        {fmtShortDate(String(label))}
+                      </p>
                       <p className="text-xs tabular text-foreground">
                         {(payload[0].value ?? 0).toFixed(1)} {u}
                       </p>
@@ -197,9 +266,15 @@ export function WeightTrend({ d, units }: { d: AnalyticsResponse; units: Units }
 export function NutritionCard({ d }: { d: AnalyticsResponse }) {
   const rows = d.nutrition ?? [];
   return (
-    <Panel title="Nutrition" info="Daily calories and protein from your food log." sources={["GARMIN"]}>
+    <Panel
+      title="Nutrition"
+      info="Daily calories and protein from your food log."
+      sources={["GARMIN"]}
+    >
       {rows.length === 0 ? (
-        <EmptyState>No nutrition data yet. Connect Apple Health, or log meals in the app.</EmptyState>
+        <EmptyState>
+          No nutrition data yet. Connect Apple Health, or log meals in the app.
+        </EmptyState>
       ) : (
         <ul className="mt-4 divide-y divide-border">
           {rows.slice(-7).map((r) => (
@@ -226,7 +301,14 @@ export function CaloriesBurned({ d }: { d: AnalyticsResponse }) {
       title="Calories burned"
       info="Basal plus active energy per day."
       sources={["GARMIN"]}
-      right={<Segmented label="Calories window" options={["1w", "4w", "12w"] as const} value={win} onChange={setWin} />}
+      right={
+        <Segmented
+          label="Calories window"
+          options={["1w", "4w", "12w"] as const}
+          value={win}
+          onChange={setWin}
+        />
+      }
     >
       {sliced.length === 0 ? (
         <EmptyState>Calorie data unlocks when your Garmin or Apple Health syncs.</EmptyState>
@@ -251,11 +333,25 @@ export function CaloriesBurned({ d }: { d: AnalyticsResponse }) {
                   tickFormatter={(v: string) => fmtShortDate(v)}
                 />
                 <YAxis tick={axis} axisLine={false} tickLine={false} width={42} />
-                <Bar dataKey="bmr" stackId="c" fill="var(--color-muted-foreground)" fillOpacity={0.4} />
-                <Bar dataKey="active" stackId="c" fill="var(--color-primary)" radius={[3, 3, 0, 0]} />
+                <Bar
+                  dataKey="bmr"
+                  stackId="c"
+                  fill="var(--color-muted-foreground)"
+                  fillOpacity={0.4}
+                />
+                <Bar
+                  dataKey="active"
+                  stackId="c"
+                  fill="var(--color-primary)"
+                  radius={[3, 3, 0, 0]}
+                />
                 <Tooltip
                   cursor={{ fill: "var(--color-muted-foreground)", fillOpacity: 0.08 }}
-                  content={({ active, payload, label }: {
+                  content={({
+                    active,
+                    payload,
+                    label,
+                  }: {
                     active?: boolean;
                     payload?: { dataKey?: string | number; value?: number }[];
                     label?: string | number;
@@ -263,7 +359,9 @@ export function CaloriesBurned({ d }: { d: AnalyticsResponse }) {
                     if (!active || !payload?.length) return null;
                     return (
                       <Box>
-                        <p className="text-[11px] tabular text-muted-foreground">{fmtShortDate(String(label))}</p>
+                        <p className="text-[11px] tabular text-muted-foreground">
+                          {fmtShortDate(String(label))}
+                        </p>
                         {payload.map((p) => (
                           <p key={String(p.dataKey)} className="text-xs tabular text-foreground">
                             {String(p.dataKey) === "bmr" ? "BMR" : "Active"}: {fmtInt(p.value)} kcal
@@ -287,14 +385,19 @@ export function CaloriesBurned({ d }: { d: AnalyticsResponse }) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {sliced.slice(-10).reverse().map((r) => (
-                  <tr key={r.date} className="tabular">
-                    <td className="py-1.5 text-muted-foreground">{fmtShortDate(r.date)}</td>
-                    <td className="py-1.5 text-right text-foreground">{fmtInt(r.total)}</td>
-                    <td className="py-1.5 text-right text-muted-foreground">{fmtInt(r.bmr)}</td>
-                    <td className="py-1.5 text-right text-muted-foreground">{fmtInt(r.active)}</td>
-                  </tr>
-                ))}
+                {sliced
+                  .slice(-10)
+                  .reverse()
+                  .map((r) => (
+                    <tr key={r.date} className="tabular">
+                      <td className="py-1.5 text-muted-foreground">{fmtShortDate(r.date)}</td>
+                      <td className="py-1.5 text-right text-foreground">{fmtInt(r.total)}</td>
+                      <td className="py-1.5 text-right text-muted-foreground">{fmtInt(r.bmr)}</td>
+                      <td className="py-1.5 text-right text-muted-foreground">
+                        {fmtInt(r.active)}
+                      </td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>

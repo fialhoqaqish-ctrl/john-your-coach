@@ -1,7 +1,14 @@
 import { useState } from "react";
 import { EmptyState, Panel, SourceChips } from "./bits";
 import { fmtInt, fmtPaceSec, fmtShortDate } from "@/lib/format";
-import { dist, distLabel, pace, paceLabel, type AnalyticsResponse, type Units } from "@/lib/analytics";
+import {
+  dist,
+  distLabel,
+  pace,
+  paceLabel,
+  type AnalyticsResponse,
+  type Units,
+} from "@/lib/analytics";
 
 const EMOJI: Record<string, string> = {
   run: "🏃",
@@ -33,7 +40,11 @@ export function ActivityLog({
     setSelected((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id].slice(-2)));
   }
   return (
-    <Panel title="Recent activities" info="Every synced session, newest first." sources={["STRAVA", "GARMIN"]}>
+    <Panel
+      title="Recent activities"
+      info="Every synced session, newest first."
+      sources={["STRAVA", "GARMIN"]}
+    >
       {rows.length === 0 ? (
         <EmptyState>No activities in this window.</EmptyState>
       ) : (
@@ -59,7 +70,9 @@ export function ActivityLog({
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className="flex items-baseline justify-between gap-2">
-                        <span className="truncate text-sm text-foreground">{a.name ?? a.sport ?? "Session"}</span>
+                        <span className="truncate text-sm text-foreground">
+                          {a.name ?? a.sport ?? "Session"}
+                        </span>
                         <span className="shrink-0 text-[11px] tabular text-muted-foreground">
                           {fmtShortDate(a.date)}
                         </span>
@@ -77,7 +90,9 @@ export function ActivityLog({
                       </span>
                       {a.source && <SourceChips sources={[a.source]} />}
                       {a.duplicate_of && (
-                        <span className="mt-1 block text-[10px] text-muted-foreground">merged duplicate</span>
+                        <span className="mt-1 block text-[10px] text-muted-foreground">
+                          merged duplicate
+                        </span>
                       )}
                     </span>
                     <span

@@ -148,7 +148,9 @@ export function ReadinessCard({ d }: { d: AnalyticsResponse }) {
                   <li key={dr.label}>
                     <div className="flex items-baseline justify-between gap-3">
                       <span className="text-sm text-foreground">{dr.label}</span>
-                      {dr.note && <span className="text-[11px] text-muted-foreground">{dr.note}</span>}
+                      {dr.note && (
+                        <span className="text-[11px] text-muted-foreground">{dr.note}</span>
+                      )}
                     </div>
                     <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-border">
                       <div
@@ -193,7 +195,12 @@ export function LoadBalanceCard({ d }: { d: AnalyticsResponse }) {
         ? "var(--color-warning)"
         : "var(--color-success)";
   const split = l?.sport_split ?? [];
-  const palette = ["var(--color-primary)", "var(--color-warning)", "var(--color-success)", "var(--color-muted-foreground)"];
+  const palette = [
+    "var(--color-primary)",
+    "var(--color-warning)",
+    "var(--color-success)",
+    "var(--color-muted-foreground)",
+  ];
   return (
     <Panel
       title="Load balance"
@@ -219,20 +226,35 @@ export function LoadBalanceCard({ d }: { d: AnalyticsResponse }) {
           <p className="mt-1 text-[11px] text-muted-foreground">
             0.8–1.3 safe · last 7 days vs. last 28
           </p>
-          <div className="mt-4 h-2 w-full rounded-full bg-border" role="img" aria-label={`ACWR ${acwr.toFixed(2)}, ${status || "unknown"}`}>
+          <div
+            className="mt-4 h-2 w-full rounded-full bg-border"
+            role="img"
+            aria-label={`ACWR ${acwr.toFixed(2)}, ${status || "unknown"}`}
+          >
             <div className="relative h-full w-full">
               <span
                 className="absolute inset-y-0 rounded-full"
-                style={{ left: "26.7%", width: "16.7%", background: "var(--color-success)", opacity: 0.25 }}
+                style={{
+                  left: "26.7%",
+                  width: "16.7%",
+                  background: "var(--color-success)",
+                  opacity: 0.25,
+                }}
               />
               <span
                 className="absolute -top-1 h-4 w-1 rounded-full"
-                style={{ left: `calc(${Math.min(100, Math.max(0, (acwr / 3) * 100))}% - 2px)`, background: color }}
+                style={{
+                  left: `calc(${Math.min(100, Math.max(0, (acwr / 3) * 100))}% - 2px)`,
+                  background: color,
+                }}
               />
             </div>
           </div>
           <div className="mt-5 grid grid-cols-2 gap-3">
-            <Sub label="Sameness · monotony" value={l?.monotony != null ? l.monotony.toFixed(2) : "—"} />
+            <Sub
+              label="Sameness · monotony"
+              value={l?.monotony != null ? l.monotony.toFixed(2) : "—"}
+            />
             <Sub label="Weekly strain" value={l?.strain != null ? fmtInt(l.strain) : "—"} />
           </div>
         </>
@@ -251,8 +273,15 @@ export function LoadBalanceCard({ d }: { d: AnalyticsResponse }) {
           </div>
           <ul className="mt-2 flex flex-wrap gap-3">
             {split.map((s, i) => (
-              <li key={s.sport} className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                <span className="h-2 w-2 rounded-full" style={{ background: palette[i % palette.length] }} aria-hidden="true" />
+              <li
+                key={s.sport}
+                className="flex items-center gap-1.5 text-[11px] text-muted-foreground"
+              >
+                <span
+                  className="h-2 w-2 rounded-full"
+                  style={{ background: palette[i % palette.length] }}
+                  aria-hidden="true"
+                />
                 {s.sport} {Math.round(s.pct)}%
               </li>
             ))}

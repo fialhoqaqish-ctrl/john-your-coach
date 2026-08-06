@@ -370,9 +370,6 @@ function groupWeeks(days: Cell[]): (Cell | null)[][] {
   for (const day of days) {
     const dt = new Date(`${day.date}T00:00:00`);
     const idx = (dt.getDay() + 6) % 7; // Monday first
-    if (weeks.length === 0 && current.every((c) => c === null)) {
-      // seed
-    }
     if (idx === 0 && current.some((c) => c !== null)) {
       weeks.push(current);
       current = new Array(7).fill(null);
